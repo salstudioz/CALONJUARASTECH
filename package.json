@@ -4,23 +4,45 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "build": "prisma generate && next build",
+    "start": "node server.js",
+    "start:next": "next start",
+    "postinstall": "prisma generate",
+    "lint": "eslint",
+    "test": "vitest run",
+    "prisma:generate": "prisma generate",
+    "prisma:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "idb": "^8.0.4",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
+    "lucide-react": "^1.58.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autoprefixer": "^10.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "postcss": "^8.5.30",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5"
   }
 }
