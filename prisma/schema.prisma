@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Plant {
+  id               Int             @id @default(autoincrement())
+  name             String          @db.VarChar(191)
+  supported_modes  String          @db.VarChar(191) // e.g. "lahan_luas,pekarangan"
+  standard_spacing String          @db.VarChar(191) // e.g. "25x25 cm"
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  diseases         Disease[]
+  dose_references  DoseReference[]
+
+  @@map("plants")
+}
+
+model Disease {
+  id               Int      @id @default(autoincrement())
+  plant_id         Int
+  name             String   @db.VarChar(191)
+  symptoms         String   @db.Text
+  treatment_advice String   @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  plant            Plant    @relation(fields: [plant_id], references: [id], onDelete: Cascade)
+
+  @@index([plant_id])
+  @@map("diseases")
+}
+
+model DoseReference {
+  id                  Int      @id @default(autoincrement())
+  plant_id            Int
+  mode                String   @db.VarChar(50) // "lahan_luas" atau "pekarangan"
+  phase               String   @db.VarChar(100) // Vegetatif, Generatif, Pemulihan, dll.
+  fertilizer_type     String   @db.VarChar(100) // NPK, Urea, Kompos, dll.
+  dose_per_unit       Float    // kg/ha untuk lahan luas, atau gram/tanaman untuk pekarangan
+  frequency           String   @db.VarChar(100) // Contoh: "1 minggu sekali"
+  water_volume_per_ha Float?   // Volume air per hektar (Liter)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  plant               Plant    @relation(fields: [plant_id], references: [id], onDelete: Cascade)
+
+  @@index([plant_id])
+  @@map("dose_references")
+}
+
+model UnitPrice {
+  id             Int      @id @default(autoincrement())
+  item_name      String   @unique @db.VarChar(191)
+  price_per_unit Float    // Harga per kg / liter / bibit (Rupiah)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("unit_prices")
+}
