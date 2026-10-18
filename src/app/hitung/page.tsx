@@ -131,11 +131,7 @@ function HitungContent() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full space-y-8 animate-in fade-in duration-200">
       {/* Header (Consistent with AgriScan Design System) */}
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] text-xs font-bold border border-[#1B5E20]/20 shadow-xs mb-2">
-          <Calculator className="w-3.5 h-3.5" />
-          <span>Kalkulator Dosis 5 Tepat Mandiri</span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] mt-1">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18]">
           Kalkulator Dosis &amp; Estimasi Kebutuhan
         </h1>
         <p className="text-sm text-gray-600 mt-1.5 max-w-2xl leading-relaxed">
