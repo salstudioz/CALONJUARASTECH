@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 56" fill="none" width="100%" height="100%">
+  <!-- Icon Container: Soft organic squircle -->
+  <rect x="2" y="4" width="48" height="48" rx="12" fill="#2F5D43"/>
+  <rect x="2" y="4" width="48" height="48" rx="12" stroke="#244A35" stroke-width="1"/>
+  
+  <!-- Subtle Scanning Precision Frame -->
+  <path d="M10 16V12H14" stroke="#A3C9B0" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 16V12H38" stroke="#A3C9B0" stroke-width="2" stroke-linecap="round"/>
+  <path d="M10 40V44H14" stroke="#A3C9B0" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 40V44H38" stroke="#A3C9B0" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Central Sprout / Leaf Mark -->
+  <path d="M26 38V24" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M26 27C26 21 21 17 15 18C15 24 19 28 26 28" fill="#A3C9B0" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M26 23C26 18 31 15 37 16C37 22 33 25 26 25" fill="#EAF5EE" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="26" cy="38" r="2" fill="#FFFFFF"/>
+
+  <!-- Brand Typography -->
+  <text x="62" y="32" font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="21" font-weight="800" fill="#16251C" letter-spacing="-0.5">AgriScan</text>
+  
+  <!-- PRO Badge Pill -->
+  <rect x="156" y="17" width="42" height="18" rx="5" fill="#E6EFE8" stroke="#2F5D43" stroke-width="1"/>
+  <text x="177" y="30" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" font-weight="800" fill="#2F5D43" text-anchor="middle" letter-spacing="0.5">PRO</text>
+  
+  <!-- Subtitle Tagline -->
+  <text x="63" y="45" font-family="'Plus Jakarta Sans', sans-serif" font-size="9" font-weight="600" fill="#5B6B60" letter-spacing="0.8">LAHAN LUAS &amp; PEKARANGAN</text>
+</svg>

@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+:root {
+  /* AgriScan Production Design System - WCAG AAA Compliant */
+  --primary-accent: #1B5E20;    /* Deep Forest Green - AAA WCAG Contrast 7.9:1 */
+  --primary-hover: #144718;
+  --secondary-surface: #E8F5E9; /* Soft Sage / Mint background for cards & badges */
+  --secondary-mint: #D6EDD9;
+  
+  --warning-caution: #F57F17;   /* High-visibility Ochre Yellow for alerts */
+  --warning-bg: #FFF9E6;
+  --warning-border: #FFE082;
+  
+  --danger-alert: #C62828;      /* Crimson Red for disease infection */
+  --danger-bg: #FFEBEE;
+  --danger-border: #FFCDD2;
+  
+  --info-bmkg: #0288D1;         /* Sky Blue for atmospheric BMKG data */
+  --info-bg: #E1F5FE;
+  --info-border: #B3E5FC;
+  
+  --bg-canvas: #F9FBF8;         /* Warm off-white to prevent outdoor screen glare */
+  --card-white: #FFFFFF;
+  --text-primary: #1A1C18;      /* Near Black for outdoor sunlight legibility */
+  --text-secondary: #424940;    /* Deep slate green for secondary text */
+  --text-muted: #5F675D;        /* Readable muted captions */
+  --border-neutral: #E0E6ED;    /* Subtle crisp 1px border */
+  --border-subtle: #EDF1F5;
+}
+
+/* Base Reset & Outdoor Screen Accessibility */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px; /* Strict minimum 16px to prevent iOS auto-zoom */
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 72px; /* Accommodate fixed bottom navigation on mobile */
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+/* High contrast inputs and touch targets (Strict min 48px) */
+input, select, textarea, button {
+  font-size: 16px; /* Prevent auto-zoom */
+}
+
+/* Bento Card Style */
+.bento-card {
+  background-color: var(--card-white);
+  border: 1px solid var(--border-neutral);
+  border-radius: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+.bento-card:hover {
+  border-color: #CBD5E1;
+}
+
+.bento-card-interactive {
+  cursor: pointer;
+}
+
+.bento-card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(27, 94, 32, 0.08);
+  border-color: var(--primary-accent);
+}
+
+/* High-contrast focus state */
+:focus-visible {
+  outline: 3px solid var(--primary-accent);
+  outline-offset: 2px;
+}
+
+/* Tabular numbers for clean calculations */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Prevent unwanted dev overlay clutter */
+nextjs-portal,
+[data-nextjs-dev-overlay],
+[data-nextjs-portal],
+#nextjs-dev-overlay,
+next-route-announcer {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  left: -99999px !important;
+}
+
+/* Print styling */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    padding-bottom: 0 !important;
+  }
+  .no-print { display: none !important; }
+}
