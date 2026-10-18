@@ -140,8 +140,8 @@ Tersedia modul edukasi visual untuk mempermudah petani dan warga awam memahami p
 
 ### Langkah 1: Kloning Repositori & Masuk ke Direktori
 ```bash
-git clone https://github.com/salstudioz/TimSEMPAKTELES.git
-cd TimSEMPAKTELES
+git clone https://github.com/salstudioz/CALONJUARASTECH.git
+cd CALONJUARASTECH
 ```
 
 ### Langkah 2: Instalasi Dependensi
@@ -196,4 +196,4 @@ Aplikasi siap dideploy ke berbagai platform hosting:
 ---
 
 *Dikembangkan dengan dedikasi untuk petani Indonesia dan pegiat ketahanan pangan mandiri.*  
-**Tim SEMPAKTELES — Universitas Jenderal Soedirman (2026)**
+**Tim ALHAMDULILLAH BOLEH GANTI NAMA TIM — Universitas Jenderal Soedirman (2026)**
