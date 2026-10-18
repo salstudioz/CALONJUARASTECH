@@ -44,3 +44,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 *.log
+
+# Proposals & Working Documents
+*.docx
+*.doc
+propo/
