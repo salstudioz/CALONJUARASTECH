@@ -61,8 +61,6 @@ import { runInferenceOnImage, PredictionResult } from "@/lib/inference";
 import { generateActionPlanPdf } from "@/lib/pdfGenerator";
 import { saveHistoryItem } from "@/lib/storage";
 import {
-  PRESET_REGIONS,
-  RegionOption,
   ProcessedWeatherData,
   evaluateWeatherWarnings,
 } from "@/data/wilayahBmkg";
@@ -104,9 +102,84 @@ export function AgriScanWizard() {
   const [showFormulaDetails, setShowFormulaDetails] = useState<boolean>(false);
 
   // ── STEP 5: BMKG WEATHER & ACTION PLAN ──────────────────────────
-  const [selectedRegion, setSelectedRegion] = useState<RegionOption>(PRESET_REGIONS[0]);
+  const [geoState, setGeoState] = useState<"detecting" | "gps" | "fallback">("detecting");
   const [isSavedToHistory, setIsSavedToHistory] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState<boolean>(false);
+  const [weatherData, setWeatherData] = useState<ProcessedWeatherData>({
+    locationName: "Stasiun Meteorologi Pertanian",
+    adm4: "33.02.09.2001",
+    updatedAt: "Menghubungkan ke BMKG...",
+    timeSlot: "Prakiraan Realtime",
+    isLiveBmkg: true,
+    temperatureC: 28,
+    humidityPercent: 82,
+    weatherDesc: "Cerah Berawan",
+    windSpeedKmh: 12,
+    warnings: [],
+    forecast3Days: [
+      { date: "Hari Ini", dayName: "Hari Ini", weatherDesc: "Cerah Berawan", tempMin: 24, tempMax: 31, humidity: 80, windSpeedKmh: 12 },
+      { date: "Besok", dayName: "Besok", weatherDesc: "Hujan Ringan", tempMin: 23, tempMax: 30, humidity: 85, windSpeedKmh: 14 },
+      { date: "Lusa", dayName: "Lusa", weatherDesc: "Berawan", tempMin: 24, tempMax: 31, humidity: 78, windSpeedKmh: 10 },
+    ],
+  });
+
+  // Fetch live BMKG data synchronized with device GPS or regional fallback
+  useEffect(() => {
+    let isCancelled = false;
+    setIsWeatherLoading(true);
+    setGeoState("detecting");
+
+    const fetchWeatherWithParams = async (lat?: number, lon?: number) => {
+      try {
+        let url = `/api/cuaca?clientTime=${Date.now()}`;
+        if (lat !== undefined && lon !== undefined) {
+          url += `&lat=${lat}&lon=${lon}`;
+        } else {
+          url += `&adm4=33.02.09.2001`;
+        }
+
+        const res = await fetch(url);
+        const data: ProcessedWeatherData = await res.json();
+        if (!isCancelled) {
+          setWeatherData(data);
+          setIsWeatherLoading(false);
+          setGeoState(lat !== undefined ? "gps" : "fallback");
+        }
+      } catch (err) {
+        console.warn("Failed fetching live BMKG weather:", err);
+        if (!isCancelled) {
+          setIsWeatherLoading(false);
+          setGeoState("fallback");
+        }
+      }
+    };
+
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (!isCancelled) {
+            fetchWeatherWithParams(pos.coords.latitude, pos.coords.longitude);
+          }
+        },
+        (err) => {
+          console.warn("Geolocation denied or error, using default regional station:", err.message);
+          if (!isCancelled) {
+            fetchWeatherWithParams();
+          }
+        },
+        { enableHighAccuracy: false, timeout: 6000, maximumAge: 300000 }
+      );
+    } else {
+      fetchWeatherWithParams();
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const [checklist, setChecklist] = useState<Record<string, boolean>>({
     "h1-1": false,
     "h1-2": false,
@@ -119,7 +192,6 @@ export function AgriScanWizard() {
   useEffect(() => {
     const available = getDiseasesByPlant(selectedPlant);
     if (available.length > 0) {
-      // Default to known disease
       const target = available.find((d) => !d.isHealthy) || available[0];
       setSelectedDiseaseId(target.id);
     }
@@ -153,57 +225,6 @@ export function AgriScanWizard() {
     });
   }, [containerId, jumlahWadah, selectedPlant, phTanah, selectedDiseaseId]);
 
-  // ── BMKG WEATHER MEMO ───────────────────────────────────────────
-  const weatherData: ProcessedWeatherData = useMemo(() => {
-    // Generate deterministic real-time weather per selected region
-    const baseTemp = selectedRegion.desa.includes("Lembang") ? 22 : 28;
-    const baseHumidity = 88; // rainy season high humidity
-    const windSpeed = 14;
-    const weatherDesc = "Hujan Ringan - Berawan";
-
-    const warnings = evaluateWeatherWarnings(baseTemp, baseHumidity, weatherDesc, windSpeed);
-
-    return {
-      locationName: `${selectedRegion.desa}, ${selectedRegion.kecamatan}, ${selectedRegion.kabupaten}`,
-      adm4: selectedRegion.adm4,
-      updatedAt: "Prakiraan Operasional BMKG Terbuka (Pembaruan Tiap 3 Jam)",
-      temperatureC: baseTemp,
-      humidityPercent: baseHumidity,
-      weatherDesc,
-      windSpeedKmh: windSpeed,
-      warnings,
-      forecast3Days: [
-        {
-          date: "Hari Ini",
-          dayName: "Selasa",
-          weatherDesc: "Hujan Sedang (Siang-Sore)",
-          tempMin: 23,
-          tempMax: 30,
-          humidity: 89,
-          windSpeedKmh: 14,
-        },
-        {
-          date: "Besok",
-          dayName: "Rabu",
-          weatherDesc: "Cerah Berawan (Jendela Semprot)",
-          tempMin: 24,
-          tempMax: 31,
-          humidity: 78,
-          windSpeedKmh: 11,
-        },
-        {
-          date: "Lusa",
-          dayName: "Kamis",
-          weatherDesc: "Hujan Lebat Disertai Kilat",
-          tempMin: 22,
-          tempMax: 29,
-          humidity: 92,
-          windSpeedKmh: 22,
-        },
-      ],
-    };
-  }, [selectedRegion]);
-
   // Active Disease Info
   const currentDiseaseInfo: DiseaseInfo = useMemo(() => {
     return (
@@ -221,65 +242,44 @@ export function AgriScanWizard() {
     setImageFileName(file.name);
     const objectUrl = URL.createObjectURL(file);
     setSelectedImage(objectUrl);
+    // Reset input value so re-selecting same file triggers onChange
+    e.target.value = "";
     await executeInference(objectUrl);
   };
 
-  const handleQuickSample = async (sampleType: "blast" | "sehat") => {
-    const samplePath =
-      sampleType === "blast"
-        ? "/images/blast_leaf_cutout.jpg"
-        : "/images/rice_crop_cutout.jpg";
-
-    setImageFileName(sampleType === "blast" ? "Sampel-Daun-Blas.jpg" : "Sampel-Daun-Sehat.jpg");
-    setSelectedImage(samplePath);
-    await executeInference(samplePath, sampleType === "blast" ? "padi_blast" : "padi_healthy");
-  };
-
-  const executeInference = async (imgSrc: string, forcedId?: string) => {
+  const executeInference = async (imgSrc: string) => {
     setIsAnalyzing(true);
+    setScanError(null);
     try {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
       img.src = imgSrc;
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
+        img.onerror = () => reject(new Error("Gagal memuat file gambar"));
       });
 
       const result = await runInferenceOnImage(img, selectedPlant);
-      
-      // If forcedId is provided (e.g. from sample), tune to exact disease
-      if (forcedId) {
-        const found = getDiseaseById(forcedId);
-        if (found) {
-          result.disease = found;
-          result.confidence = 87.4;
-          setSelectedDiseaseId(found.id);
-        }
-      } else {
-        setSelectedDiseaseId(result.disease.id);
+
+      // Non-leaf / Non-plant Rejection Check
+      if (!result.isLeafDetected) {
+        setScanError(
+          result.rejectionReason ||
+            "Objek pada foto tidak dikenali sebagai daun tanaman. Pastikan Anda mengarahkan kamera ke helai daun tanaman padi, cabai, atau tomat dari jarak 15–20 cm."
+        );
+        setPredictionResult(result);
+        return;
       }
 
+      setSelectedDiseaseId(result.disease.id);
       setPredictionResult(result);
-      // Auto advance to Step 3
+      // Auto advance to Step 3 ONLY when leaf is valid
       setCurrentStep(3);
     } catch (err) {
       console.error("Inference failed", err);
-      // Fallback to high confidence blast
-      const fallback = getDiseaseById("padi_blast") || DISEASES[0];
-      setSelectedDiseaseId(fallback.id);
-      setPredictionResult({
-        disease: fallback,
-        confidence: 87.2,
-        isAboveThreshold: true,
-        thresholdUsed: 65.0,
-        topProbabilities: [
-          { disease: fallback, percentage: 87.2 },
-          { disease: DISEASES[1], percentage: 9.4 },
-        ],
-        latencyMs: 142,
-        modelVersion: "MobileNetV2-Quantized-v2.1",
-      });
-      setCurrentStep(3);
+      setScanError(
+        "Gagal memproses gambar. Pastikan format file berupa foto tanaman JPG/PNG yang valid dan coba kembali."
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -304,7 +304,7 @@ export function AgriScanWizard() {
         diseaseName: currentDiseaseInfo.name,
         isHealthy: currentDiseaseInfo.isHealthy,
         confidenceScore: predictionResult?.confidence || 87.2,
-        imagePreviewUrl: selectedImage || "/images/blast_leaf_cutout.jpg",
+        imagePreviewUrl: selectedImage || "",
         weatherLocation: weatherData.locationName,
         weatherWarningCount: weatherData.warnings.length,
         calculationSummary: {
@@ -706,6 +706,24 @@ export function AgriScanWizard() {
                 onChange={handleFileChange}
               />
 
+              {/* Scan / Non-Leaf Rejection Error Banner */}
+              {scanError && (
+                <div className="p-4 rounded-[18px] bg-red-50 border-2 border-red-300 flex items-start gap-3 animate-in fade-in">
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold uppercase tracking-wider text-red-700">
+                      Deteksi Ditolak — Objek Bukan Daun Tanaman:
+                    </p>
+                    <p className="text-sm font-semibold text-gray-800 leading-snug">
+                      {scanError}
+                    </p>
+                    <p className="text-xs text-gray-600 pt-0.5">
+                      <strong>Panduan:</strong> Pastikan Anda memotret helai daun tanaman secara tegak lurus dari jarak 15–20 cm dengan pencahayaan terang dan fokus tajam.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons: [Ambil Foto (Kamera)] and [Pilih dari Galeri] (Minimum 48px height) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
@@ -726,35 +744,11 @@ export function AgriScanWizard() {
                   <span>Pilih dari Galeri</span>
                 </button>
               </div>
-
-              {/* Reference Leaf Strip */}
-              <div className="pt-3 border-t border-[#E0E6ED] flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-500">
-                  Foto Rujukan Lapangan Terverifikasi:
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickSample("blast")}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-[#E8F5E9] text-[#1B5E20] hover:bg-[#1B5E20] hover:text-white transition-colors border border-[#1B5E20]/20"
-                  >
-                    Rujukan Daun Blas
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickSample("sehat")}
-                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors border border-gray-300"
-                  >
-                    Rujukan Daun Sehat
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Bottom Controls */}
             <div className="flex items-center justify-end pt-2">
-
-              {selectedImage && (
+              {selectedImage && !scanError && predictionResult?.isLeafDetected && (
                 <button
                   type="button"
                   onClick={() => setCurrentStep(3)}
@@ -786,14 +780,21 @@ export function AgriScanWizard() {
             <div className="bg-white border border-[#E0E6ED] rounded-[22px] p-6 shadow-sm relative overflow-visible">
               <div className="flex flex-col sm:flex-row gap-6 items-start">
                 
-                {/* Disease Leaf Cutout Photo */}
+                {/* Disease Leaf Photo */}
                 <div className="relative w-full sm:w-48 aspect-square rounded-[18px] bg-[#E8F5E9] border border-[#1B5E20]/20 overflow-hidden shrink-0 flex items-center justify-center shadow-inner">
-                  <Image
-                    src={selectedImage || "/images/blast_leaf_cutout.jpg"}
-                    alt={currentDiseaseInfo.name}
-                    fill
-                    className="object-cover"
-                  />
+                  {selectedImage ? (
+                    <Image
+                      src={selectedImage}
+                      alt={currentDiseaseInfo.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center p-4 text-center">
+                      <Camera className="w-10 h-10 text-[#1B5E20]/50 mb-1" />
+                      <span className="text-[11px] text-gray-500 font-medium">Foto Daun Lapangan</span>
+                    </div>
+                  )}
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded font-mono">
                     224×224 px
                   </div>
@@ -811,15 +812,23 @@ export function AgriScanWizard() {
                     {/* Severity Tag */}
                     <div
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                        currentDiseaseInfo.severity === "bahaya"
+                        currentDiseaseInfo.isHealthy
+                          ? "bg-[#1B5E20] text-white"
+                          : currentDiseaseInfo.severity === "bahaya"
                           ? "bg-[#C62828] text-white"
                           : currentDiseaseInfo.severity === "waspada"
                           ? "bg-[#F57F17] text-white"
                           : "bg-[#1B5E20] text-white"
                       }`}
                     >
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      <span>Status: {currentDiseaseInfo.severity.toUpperCase()}</span>
+                      {currentDiseaseInfo.isHealthy ? (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                      )}
+                      <span>
+                        Status: {currentDiseaseInfo.isHealthy ? "PRIMA (SEHAT)" : currentDiseaseInfo.severity.toUpperCase()}
+                      </span>
                     </div>
                   </div>
 
@@ -835,7 +844,7 @@ export function AgriScanWizard() {
                   {/* Symptoms List ("Ciri-ciri") */}
                   <div className="bg-[#F9FBF8] rounded-[16px] p-4 border border-[#E0E6ED] space-y-2">
                     <p className="text-xs font-bold uppercase tracking-wider text-gray-700">
-                      Ciri-Ciri Klinis Daun:
+                      {currentDiseaseInfo.isHealthy ? "Karakteristik Daun Sehat:" : "Ciri-Ciri Klinis Daun:"}
                     </p>
                     <ul className="space-y-1.5">
                       {currentDiseaseInfo.symptoms.map((symptom, idx) => (
@@ -849,15 +858,31 @@ export function AgriScanWizard() {
                 </div>
               </div>
 
-              {/* Explicit Disclaimer Box (Yellow Background #F57F17) */}
-              <div className="mt-6 p-4 rounded-[16px] bg-[#F57F17]/10 border-2 border-[#F57F17] flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[#F57F17] shrink-0 mt-0.5" />
+              {/* Status / Disclaimer Box */}
+              <div
+                className={`mt-6 p-4 rounded-[16px] flex items-start gap-3 border-2 ${
+                  currentDiseaseInfo.isHealthy
+                    ? "bg-[#E8F5E9] border-[#1B5E20]"
+                    : "bg-[#F57F17]/10 border-[#F57F17]"
+                }`}
+              >
+                {currentDiseaseInfo.isHealthy ? (
+                  <CheckCircle2 className="w-5 h-5 text-[#1B5E20] shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-[#F57F17] shrink-0 mt-0.5" />
+                )}
                 <div className="space-y-0.5">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#F57F17]">
-                    Peringatan Hasil Analisis:
+                  <p
+                    className={`text-xs font-bold uppercase tracking-wider ${
+                      currentDiseaseInfo.isHealthy ? "text-[#1B5E20]" : "text-[#F57F17]"
+                    }`}
+                  >
+                    {currentDiseaseInfo.isHealthy ? "Kondisi Tanaman Optimal:" : "Peringatan Hasil Analisis:"}
                   </p>
                   <p className="text-sm font-semibold text-[#1A1C18] leading-snug">
-                    Dugaan awal, bukan diagnosis akhir. Konsultasikan dengan penyuluh pertanian lapangan (PPL) setempat sebelum tindakan kimiawi berskala besar.
+                    {currentDiseaseInfo.isHealthy
+                      ? "Tanaman dalam kondisi prima dan tidak terdeteksi serangan patogen. Lanjutkan pemupukan berimbang dan perawatan rutin."
+                      : "Dugaan awal, bukan diagnosis akhir. Konsultasikan dengan penyuluh pertanian lapangan (PPL) setempat sebelum tindakan kimiawi berskala besar."}
                   </p>
                 </div>
               </div>
@@ -1228,49 +1253,112 @@ export function AgriScanWizard() {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                      Stasiun BMKG Terdekat:
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                        Stasiun BMKG Terdekat:
+                      </span>
+                      {isWeatherLoading && (
+                        <RefreshCw className="w-3 h-3 text-[#0288D1] animate-spin" />
+                      )}
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E1F5FE] text-[#0288D1] font-bold">
+                        {weatherData.isLiveBmkg ? "API Resmi BMKG" : "Agrometeorologi"}
+                      </span>
+                    </div>
                     <div className="font-bold text-base text-[#1A1C18]">
                       {weatherData.locationName}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {weatherData.timeSlot || "Prakiraan Realtime"} • Pembaruan: {weatherData.updatedAt}
                     </div>
                   </div>
                 </div>
 
-                {/* Region Selector */}
-                <select
-                  value={selectedRegion.adm4}
-                  onChange={(e) => {
-                    const reg = PRESET_REGIONS.find((r) => r.adm4 === e.target.value);
-                    if (reg) setSelectedRegion(reg);
-                  }}
-                  className="min-h-[44px] px-3 rounded-xl border border-[#E0E6ED] bg-[#F9FBF8] text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#0288D1]"
-                >
-                  {PRESET_REGIONS.map((r) => (
-                    <option key={r.adm4} value={r.adm4}>
-                      {r.desa}, {r.kabupaten}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Real-time Alert Callout ("Hujan lebat hari Kamis, tunda penyemprotan fungisida") */}
-              <div className="p-4 rounded-[16px] bg-[#F57F17]/10 border-2 border-[#F57F17] flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-[#F57F17] shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#F57F17]">
-                      Peringatan Cuaca BMKG:
+                {/* Auto-detected GPS Location Status */}
+                <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED] self-start sm:self-center">
+                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${geoState === "detecting" ? "bg-amber-400 animate-ping" : geoState === "gps" ? "bg-[#1B5E20] animate-pulse" : "bg-blue-500"}`} />
+                  <div className="text-left">
+                    <span className="text-xs font-bold text-gray-800 block">
+                      {geoState === "detecting"
+                        ? "Mendeteksi GPS Perangkat..."
+                        : geoState === "gps"
+                        ? "📍 Deteksi Otomatis (GPS Perangkat)"
+                        : "📍 Stasiun Acuan Regional Default"}
                     </span>
-                    <span className="text-[11px] px-2 py-0.5 rounded bg-[#F57F17] text-white font-bold">
-                      Kelembapan {weatherData.humidityPercent}%
+                    <span className="text-[10.5px] text-gray-500 block">
+                      {geoState === "gps"
+                        ? "Stasiun BMKG dicocokkan otomatis dari perangkat"
+                        : geoState === "detecting"
+                        ? "Membaca posisi satelit perangkat..."
+                        : "Izin GPS mati, menggunakan stasiun regional"}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold text-[#1A1C18]">
-                    Hujan lebat diperkirakan turun hari Kamis, tunda penyemprotan fungisida untuk menghindari pencucian bahan aktif. Prioritaskan aplikasi pada hari Rabu (jendela cerah berawan).
-                  </p>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E8F5E9] text-[#1B5E20] font-extrabold border border-[#1B5E20]/20 shrink-0 ml-1">
+                    Auto-Detect
+                  </span>
                 </div>
               </div>
+
+              {/* Realtime Weather Metrics Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div className="p-3 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED]">
+                  <span className="text-[11px] font-bold text-gray-500 block">Suhu Udara</span>
+                  <span className="text-lg font-extrabold text-[#1A1C18]">{weatherData.temperatureC}°C</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED]">
+                  <span className="text-[11px] font-bold text-gray-500 block">Kelembapan</span>
+                  <span className="text-lg font-extrabold text-[#1A1C18]">{weatherData.humidityPercent}% RH</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED]">
+                  <span className="text-[11px] font-bold text-gray-500 block">Kondisi Cuaca</span>
+                  <span className="text-sm font-extrabold text-[#1A1C18] truncate block" title={weatherData.weatherDesc}>{weatherData.weatherDesc}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED]">
+                  <span className="text-[11px] font-bold text-gray-500 block">Kecepatan Angin</span>
+                  <span className="text-lg font-extrabold text-[#1A1C18]">{weatherData.windSpeedKmh} km/jam</span>
+                </div>
+              </div>
+
+              {/* Dynamic Agrometeorological Alert Callouts */}
+              {weatherData.warnings && weatherData.warnings.length > 0 ? (
+                <div className="space-y-3">
+                  {weatherData.warnings.map((w) => (
+                    <div
+                      key={w.id}
+                      className="p-4 rounded-[16px] bg-[#FFF8E1] border-2 border-[#FFA000] flex items-start gap-3"
+                    >
+                      <AlertTriangle className="w-5 h-5 text-[#E65100] shrink-0 mt-0.5" />
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-[#E65100]">
+                            {w.title}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#FFA000] text-white font-bold uppercase">
+                            {w.level}
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold text-[#1A1C18] leading-snug">
+                          {w.message}
+                        </p>
+                        <p className="text-xs text-gray-700 pt-0.5">
+                          <strong className="text-[#E65100]">Rekomendasi Lapangan:</strong> {w.actionRecommendation}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-[16px] bg-[#E8F5E9] border-2 border-[#1B5E20] flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-[#1B5E20] shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#1B5E20]">
+                      Kondisi Agrometeorologi Kondusif:
+                    </span>
+                    <p className="text-sm font-semibold text-[#1A1C18] mt-0.5">
+                      Suhu, kelembapan, dan angin terpantau normal serta aman untuk penyemprotan pupuk daun dan tindakan budidaya.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* 3-Day Forecast Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -5,6 +5,8 @@ export interface RegionOption {
   kabupaten: string;
   provinsi: string;
   description: string;
+  latitude: number;
+  longitude: number;
 }
 
 export const PRESET_REGIONS: RegionOption[] = [
@@ -15,6 +17,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Banyumas",
     provinsi: "Jawa Tengah",
     description: "Sentra Padi Irigasi Serayu & Pertanian Sayur Mandiri",
+    latitude: -7.5342,
+    longitude: 109.1174,
   },
   {
     adm4: "33.02.13.2005",
@@ -23,6 +27,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Banyumas",
     provinsi: "Jawa Tengah",
     description: "Kawasan Lereng Gunung Slamet (Sayuran Pekarangan & Cabai)",
+    latitude: -7.3585,
+    longitude: 109.2671,
   },
   {
     adm4: "32.13.06.2001",
@@ -31,6 +37,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Subang",
     provinsi: "Jawa Barat",
     description: "Lumbung Pangan Nasional Jalur Pantura",
+    latitude: -6.3472,
+    longitude: 107.6521,
   },
   {
     adm4: "32.15.14.2003",
@@ -39,6 +47,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Karawang",
     provinsi: "Jawa Barat",
     description: "Kawasan Sawah Intensif Karawang",
+    latitude: -6.2974,
+    longitude: 107.4042,
   },
   {
     adm4: "32.17.01.2001",
@@ -47,6 +57,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Bandung Barat",
     provinsi: "Jawa Barat",
     description: "Pusat Hortikultura Tomat & Sayuran Dataran Tinggi",
+    latitude: -6.8182,
+    longitude: 107.6181,
   },
   {
     adm4: "33.29.10.2002",
@@ -55,6 +67,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Brebes",
     provinsi: "Jawa Tengah",
     description: "Sentra Cabai & Bawang Merah Pantura",
+    latitude: -6.8924,
+    longitude: 109.0221,
   },
   {
     adm4: "35.07.25.2004",
@@ -63,6 +77,8 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Malang",
     provinsi: "Jawa Timur",
     description: "Sentra Sayuran dan Cabai Dataran Tinggi Malang",
+    latitude: -7.8423,
+    longitude: 112.4772,
   },
   {
     adm4: "34.04.14.2001",
@@ -71,8 +87,128 @@ export const PRESET_REGIONS: RegionOption[] = [
     kabupaten: "Sleman",
     provinsi: "DI Yogyakarta",
     description: "Pertanian Lereng Merapi & Urban Farming Sleman",
+    latitude: -7.6664,
+    longitude: 110.4215,
+  },
+  {
+    adm4: "31.71.01.1001",
+    desa: "Menteng",
+    kecamatan: "Menteng",
+    kabupaten: "Jakarta Pusat",
+    provinsi: "DKI Jakarta",
+    description: "Metropolitan Jabodetabek & Urban Rooftop Farming",
+    latitude: -6.2088,
+    longitude: 106.8456,
+  },
+  {
+    adm4: "32.01.01.2001",
+    desa: "Cibinong",
+    kecamatan: "Cibinong",
+    kabupaten: "Bogor",
+    provinsi: "Jawa Barat",
+    description: "Sentra Hortikultura & Pembibitan Tanaman Bogor",
+    latitude: -6.4828,
+    longitude: 106.8522,
+  },
+  {
+    adm4: "33.74.01.1001",
+    desa: "Banyumanik",
+    kecamatan: "Banyumanik",
+    kabupaten: "Semarang",
+    provinsi: "Jawa Tengah",
+    description: "Wilayah Agroklimat Semarang & Sekitarnya",
+    latitude: -7.0601,
+    longitude: 110.4167,
+  },
+  {
+    adm4: "33.72.01.1001",
+    desa: "Banjarsari",
+    kecamatan: "Banjarsari",
+    kabupaten: "Surakarta",
+    provinsi: "Jawa Tengah",
+    description: "Kawasan Subur Lembah Bengawan Solo",
+    latitude: -7.5562,
+    longitude: 110.8243,
+  },
+  {
+    adm4: "35.78.01.1001",
+    desa: "Rungkut",
+    kecamatan: "Rungkut",
+    kabupaten: "Surabaya",
+    provinsi: "Jawa Timur",
+    description: "Sentra Jawa Timur & Pekarangan Perkotaan",
+    latitude: -7.3197,
+    longitude: 112.7721,
+  },
+  {
+    adm4: "51.02.01.2001",
+    desa: "Kediri",
+    kecamatan: "Kediri",
+    kabupaten: "Tabanan",
+    provinsi: "Bali",
+    description: "Lumbung Beras & Sistem Subak Lestari Bali",
+    latitude: -8.5381,
+    longitude: 115.1235,
+  },
+  {
+    adm4: "12.71.01.1001",
+    desa: "Medan Sunggal",
+    kecamatan: "Medan Sunggal",
+    kabupaten: "Medan",
+    provinsi: "Sumatera Utara",
+    description: "Sentra Pertanian Pangan Sumatera Utara",
+    latitude: 3.5952,
+    longitude: 98.6722,
+  },
+  {
+    adm4: "73.71.01.1001",
+    desa: "Tamalanrea",
+    kecamatan: "Tamalanrea",
+    kabupaten: "Makassar",
+    provinsi: "Sulawesi Selatan",
+    description: "Lumbung Pangan Kawasan Timur Indonesia",
+    latitude: -5.1477,
+    longitude: 119.4827,
+  },
+  {
+    adm4: "18.71.01.1001",
+    desa: "Kedaton",
+    kecamatan: "Kedaton",
+    kabupaten: "Bandar Lampung",
+    provinsi: "Lampung",
+    description: "Gerbang Hortikultura & Perkebunan Sumatera",
+    latitude: -5.3900,
+    longitude: 105.2500,
   },
 ];
+
+/**
+ * Finds the geographically closest preset BMKG station based on device coordinates (Haversine formula).
+ */
+export function findNearestPresetRegion(lat: number, lon: number): RegionOption {
+  let minDistance = Infinity;
+  let nearest = PRESET_REGIONS[0];
+
+  for (const reg of PRESET_REGIONS) {
+    const dLat = (reg.latitude - lat) * (Math.PI / 180);
+    const dLon = (reg.longitude - lon) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat * (Math.PI / 180)) *
+        Math.cos(reg.latitude * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distKm = 6371 * c;
+
+    if (distKm < minDistance) {
+      minDistance = distKm;
+      nearest = reg;
+    }
+  }
+
+  return nearest;
+}
 
 export interface WeatherWarning {
   id: string;
@@ -87,6 +223,11 @@ export interface ProcessedWeatherData {
   locationName: string;
   adm4: string;
   updatedAt: string;
+  timeSlot?: string;
+  isLiveBmkg?: boolean;
+  isGpsDetected?: boolean;
+  userCoordinates?: { lat: number; lon: number };
+  weatherIcon?: string;
   temperatureC: number;
   humidityPercent: number;
   weatherDesc: string;

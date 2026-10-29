@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { evaluateWeatherWarnings } from "../data/wilayahBmkg";
+import { evaluateWeatherWarnings, findNearestPresetRegion } from "../data/wilayahBmkg";
 
 describe("Aturan Evaluasi Risiko Cuaca BMKG (Bab 5.4 Proposal)", () => {
   it("Peringatan 1: Kelembapan di atas 85% memicu risiko penyakit akibat jamur", () => {
@@ -31,3 +31,24 @@ describe("Aturan Evaluasi Risiko Cuaca BMKG (Bab 5.4 Proposal)", () => {
     expect(windWarn?.title).toContain("Lindungi Tanaman Muda");
   });
 });
+
+describe("Deteksi Otomatis Lokasi Perangkat (GPS)", () => {
+  it("Mendeteksi stasiun terdekat untuk koordinat area Banyumas / Jateng Barat", () => {
+    // Banyumas ~ -7.43, 109.24
+    const nearest = findNearestPresetRegion(-7.43, 109.24);
+    expect(nearest.kabupaten).toBe("Banyumas");
+  });
+
+  it("Mendeteksi stasiun terdekat untuk koordinat area Jakarta / Bogor", () => {
+    // Jakarta Monas ~ -6.175, 106.82
+    const nearest = findNearestPresetRegion(-6.175, 106.82);
+    expect(["Jakarta Pusat", "Bogor", "Tangerang"]).toContain(nearest.kabupaten);
+  });
+
+  it("Mendeteksi stasiun terdekat untuk koordinat area Surabaya / Jatim", () => {
+    // Surabaya ~ -7.25, 112.75
+    const nearest = findNearestPresetRegion(-7.25, 112.75);
+    expect(nearest.kabupaten).toBe("Surabaya");
+  });
+});
+

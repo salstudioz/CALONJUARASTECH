@@ -21,6 +21,27 @@ export interface DiseaseInfo {
 export const DISEASES: DiseaseInfo[] = [
   // --- PADI ---
   {
+    id: "padi_healthy",
+    plantType: "padi",
+    name: "Daun Padi Sehat",
+    latinName: "Oryza sativa L.",
+    isHealthy: true,
+    severity: "sehat",
+    symptoms: [
+      "Helaian daun tegak, berwarna hijau segar merata tanpa bercak atau lesi",
+      "Tidak ada garis kuning kebasahan di sepanjang tepi daun",
+      "Permukaan helai daun bersih dari spora jamur dan luka gigitan hama",
+    ],
+    treatment: {
+      organicOrPreventive: "Lanjutkan pemupukan berimbang 5 Tepat (Urea, NPK, Organik) dan pertahankan pengelolaan air berselang (intermittent).",
+      chemicalActive: "Tidak memerlukan aplikasi pestisida atau fungisida kuratif.",
+      sprayDosage: "-",
+      applicationInterval: "Pemantauan rutin mingguan",
+      sanitationAdvice: "Jaga kebersihan pematang sawah dari gulma inang rumput-rumputan liar.",
+    },
+    sampleImageDescription: "Helai daun padi hijau cerah tegak dan bersih tanpa bercak penyakit.",
+  },
+  {
     id: "padi_bacterial_leaf_blight",
     plantType: "padi",
     name: "Hawar Daun Bakteri (Kresek)",
