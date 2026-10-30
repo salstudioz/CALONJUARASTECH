@@ -108,6 +108,13 @@ export function AgriScanWizard() {
   const [isSavedToHistory, setIsSavedToHistory] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [cropMismatch, setCropMismatch] = useState<{
+    selectedPlant: PlantType;
+    detectedPlant: PlantType;
+    detectedDisease: DiseaseInfo;
+    confidence: number;
+  } | null>(null);
+  const [plantRedirectNotice, setPlantRedirectNotice] = useState<{ from: PlantType; to: PlantType } | null>(null);
   const [isWeatherLoading, setIsWeatherLoading] = useState<boolean>(false);
   const [weatherData, setWeatherData] = useState<ProcessedWeatherData>({
     locationName: "Stasiun Meteorologi Pertanian",
@@ -252,9 +259,16 @@ export function AgriScanWizard() {
     await executeInference(objectUrl);
   };
 
+  const handleSelectSampleImage = async (url: string, name: string) => {
+    setImageFileName(name);
+    setSelectedImage(url);
+    await executeInference(url);
+  };
+
   const executeInference = async (imgSrc: string) => {
     setIsAnalyzing(true);
     setScanError(null);
+    setCropMismatch(null);
     try {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
@@ -289,15 +303,22 @@ export function AgriScanWizard() {
         return;
       }
 
-      // Synchronize detection results with diagnosis results:
+      // 3. Crop Mismatch Detection Check (User selected plant A, but leaf is plant B)
+      if (tmOutput?.mappedDisease && tmOutput.mappedDisease.plantType !== selectedPlant) {
+        setCropMismatch({
+          selectedPlant,
+          detectedPlant: tmOutput.mappedDisease.plantType,
+          detectedDisease: tmOutput.mappedDisease,
+          confidence: tmOutput.percentage,
+        });
+        setPredictionResult(result);
+        // Do NOT auto advance to Step 3: stay on Step 2 to show warning & redirection options
+        return;
+      }
+
+      // 4. Normal flow when plant matches
+      setCropMismatch(null);
       if (tmOutput?.mappedDisease) {
-        // Automatically sync commodity if user uploaded a different crop
-        if (tmOutput.mappedDisease.plantType !== selectedPlant) {
-          setSelectedPlant(tmOutput.mappedDisease.plantType);
-          showToast(
-            `Deteksi AI: Komoditas disinkronkan otomatis ke ${PLANTS[tmOutput.mappedDisease.plantType]?.name || tmOutput.mappedDisease.plantType}.`
-          );
-        }
         setSelectedDiseaseId(tmOutput.mappedDisease.id);
         result.disease = tmOutput.mappedDisease;
         result.confidence = tmOutput.percentage;
@@ -306,7 +327,7 @@ export function AgriScanWizard() {
       }
 
       setPredictionResult(result);
-      // Auto advance to Step 3 ONLY when leaf is valid
+      // Auto advance to Step 3 ONLY when leaf is valid and matches
       setCurrentStep(3);
     } catch (err) {
       console.error("Inference failed", err);
@@ -316,6 +337,37 @@ export function AgriScanWizard() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // ── CROP REDIRECTION HANDLERS ──────────────────────────────────
+  const handleAcceptPlantRedirect = () => {
+    if (!cropMismatch) return;
+    const targetPlant = cropMismatch.detectedPlant;
+    const targetDisease = cropMismatch.detectedDisease;
+
+    setSelectedPlant(targetPlant);
+    setSelectedDiseaseId(targetDisease.id);
+    setPlantRedirectNotice({
+      from: cropMismatch.selectedPlant,
+      to: targetPlant,
+    });
+
+    if (predictionResult) {
+      predictionResult.disease = targetDisease;
+      predictionResult.confidence = cropMismatch.confidence;
+    }
+
+    setCropMismatch(null);
+    showToast(`Komoditas dialihkan ke ${PLANTS[targetPlant]?.name || targetPlant}.`);
+    setCurrentStep(3);
+  };
+
+  const handleForceKeepPlant = () => {
+    if (!cropMismatch) return;
+    const originalPlant = cropMismatch.selectedPlant;
+    setCropMismatch(null);
+    showToast(`Melanjutkan analisis sebagai ${PLANTS[originalPlant]?.name || originalPlant}.`);
+    setCurrentStep(3);
   };
 
   // ── NAVIGATION HELPERS ──────────────────────────────────────────
@@ -768,6 +820,71 @@ export function AgriScanWizard() {
                 </div>
               )}
 
+              {/* Crop Mismatch Warning Banner & Redirection Card */}
+              {cropMismatch && (
+                <div className="p-5 rounded-[22px] bg-amber-50/90 border-2 border-amber-400 space-y-4 animate-in fade-in shadow-sm">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                      <AlertTriangle className="w-5 h-5 text-amber-800" />
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-amber-950 bg-amber-200/80 px-2.5 py-0.5 rounded-full">
+                          ⚠️ Peringatan: Jenis Daun Berbeda
+                        </span>
+                        <span className="text-[11px] font-mono font-bold text-amber-900 bg-white/70 px-2 py-0.5 rounded border border-amber-300">
+                          Akurasi AI: {cropMismatch.confidence.toFixed(1)}%
+                        </span>
+                      </div>
+
+                      <h3 className="text-base sm:text-lg font-extrabold text-[#1A1C18] pt-0.5 leading-snug">
+                        Foto yang Dimasukkan Bukan Daun {PLANTS[cropMismatch.selectedPlant]?.name || cropMismatch.selectedPlant}, Melainkan Daun {PLANTS[cropMismatch.detectedPlant]?.name || cropMismatch.detectedPlant}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-gray-800 leading-relaxed">
+                        Anda memilih komoditas <strong>{PLANTS[cropMismatch.selectedPlant]?.name || cropMismatch.selectedPlant}</strong>, namun model kecerdasan buatan (Google Teachable Machine) mengenali morfologi helai daun ini sebagai tanaman <strong>{PLANTS[cropMismatch.detectedPlant]?.name || cropMismatch.detectedPlant}</strong> (Indikasi: <em>{cropMismatch.detectedDisease.name}</em>).
+                      </p>
+                      <p className="text-xs text-amber-900 font-medium pt-0.5">
+                        Arahkan analisis ke <strong>{PLANTS[cropMismatch.detectedPlant]?.name || cropMismatch.detectedPlant}</strong> agar takaran dosis pupuk 5 Tepat dan anjuran obat tidak keliru.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Redirection Options */}
+                  <div className="pt-3 flex flex-col sm:flex-row gap-2.5 border-t border-amber-300/80">
+                    <button
+                      type="button"
+                      onClick={handleAcceptPlantRedirect}
+                      className="min-h-[46px] px-5 rounded-full bg-[#1B5E20] text-white hover:bg-[#144718] font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer flex-1"
+                    >
+                      <span>Alihkan ke {PLANTS[cropMismatch.detectedPlant]?.name || cropMismatch.detectedPlant} &amp; Lanjutkan</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleForceKeepPlant}
+                      className="min-h-[46px] px-4 rounded-full bg-white border border-amber-300 text-amber-950 hover:bg-amber-100 font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Tetap Pakai {PLANTS[cropMismatch.selectedPlant]?.name || cropMismatch.selectedPlant}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCropMismatch(null);
+                        setSelectedImage(null);
+                        fileInputRef.current?.click();
+                      }}
+                      className="min-h-[46px] px-4 rounded-full bg-white border border-[#E0E6ED] text-gray-700 hover:bg-gray-100 font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Ganti Foto</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Action Buttons: [Ambil Foto (Kamera)] and [Pilih dari Galeri] (Minimum 48px height) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
@@ -788,11 +905,76 @@ export function AgriScanWizard() {
                   <span>Pilih dari Galeri</span>
                 </button>
               </div>
+
+              {/* Quick Demo Sample Leaf Buttons */}
+              <div className="pt-3 border-t border-dashed border-[#E0E6ED]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-gray-500">
+                    Atau uji cepat dengan foto sampel:
+                  </span>
+                  <span className="text-[11px] text-[#1B5E20] font-medium bg-[#E8F5E9] px-2 py-0.5 rounded-full">
+                    1-Klik Demo
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    id="sample-btn-padi"
+                    onClick={() => handleSelectSampleImage("/images/samples/padi_kresek.jpg", "padi_kresek.jpg")}
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
+                  >
+                    <span className="text-xl">🌾</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 group-hover:text-emerald-800 truncate">Daun Padi</p>
+                      <p className="text-[10px] text-gray-500 truncate">Hawar Kresek</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    id="sample-btn-cabai"
+                    onClick={() => handleSelectSampleImage("/images/samples/cabai_keriting.jpg", "cabai_keriting.jpg")}
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-amber-50 hover:border-amber-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
+                  >
+                    <span className="text-xl">🌶️</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 group-hover:text-amber-800 truncate">Daun Cabai</p>
+                      <p className="text-[10px] text-gray-500 truncate">Keriting Kuning</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    id="sample-btn-tomat"
+                    onClick={() => handleSelectSampleImage("/images/samples/tomat_early_blight.jpg", "tomat_early_blight.jpg")}
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-red-50 hover:border-red-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
+                  >
+                    <span className="text-xl">🍅</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 group-hover:text-red-800 truncate">Daun Tomat</p>
+                      <p className="text-[10px] text-gray-500 truncate">Early Blight</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    id="sample-btn-bukan-daun"
+                    onClick={() => handleSelectSampleImage("/images/samples/bukan_daun_meja.jpg", "bukan_daun_meja.jpg")}
+                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
+                  >
+                    <span className="text-xl">🪵</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 group-hover:text-rose-800 truncate">Bukan Daun</p>
+                      <p className="text-[10px] text-gray-500 truncate">Uji Penolakan</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Bottom Controls */}
             <div className="flex items-center justify-end pt-2">
-              {selectedImage && !scanError && predictionResult?.isLeafDetected && (
+              {selectedImage && !scanError && !cropMismatch && predictionResult?.isLeafDetected && (
                 <button
                   type="button"
                   onClick={() => setCurrentStep(3)}
@@ -811,6 +993,32 @@ export function AgriScanWizard() {
            ══════════════════════════════════════════════════════════════ */}
         {currentStep === 3 && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Redirection Alert Banner */}
+            {plantRedirectNotice && (
+              <div className="p-4 rounded-[18px] bg-amber-50 border-2 border-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in">
+                <div className="flex items-center gap-2.5 text-amber-950">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span>
+                    <strong>Komoditas Telah Dialihkan:</strong> Pilihan awal Anda adalah{" "}
+                    <span className="line-through text-gray-500 font-normal">
+                      {PLANTS[plantRedirectNotice.from]?.name}
+                    </span>
+                    , tetapi diarahkan ke <strong>{PLANTS[plantRedirectNotice.to]?.name}</strong> karena karakteristik helai daun terdeteksi sebagai {PLANTS[plantRedirectNotice.to]?.name}.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedPlant(plantRedirectNotice.from);
+                    setPlantRedirectNotice(null);
+                    showToast(`Dikembalikan ke ${PLANTS[plantRedirectNotice.from]?.name}.`);
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-white border border-amber-300 text-amber-950 hover:bg-amber-100 font-bold text-xs shrink-0 cursor-pointer shadow-xs"
+                >
+                  Kembalikan ke {PLANTS[plantRedirectNotice.from]?.name}
+                </button>
+              </div>
+            )}
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#1B5E20]">
                 Langkah 3: Hasil Diagnosis Patogen Daun
