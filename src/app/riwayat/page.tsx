@@ -2,12 +2,23 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Trash2,
   Download,
   Clock,
   MapPin,
   FileText,
+  ArrowLeft,
+  Camera,
+  Sprout,
+  Layers,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  ExternalLink,
 } from "lucide-react";
 import {
   getAllHistory,
@@ -17,12 +28,18 @@ import {
 } from "@/lib/storage";
 import { generateActionPlanPdf } from "@/lib/pdfGenerator";
 import { PLANTS } from "@/data/agronomy";
-import { Button } from "@/components/ui/Button";
 
 export default function RiwayatPage() {
+  const router = useRouter();
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filterMode, setFilterMode] = useState<"all" | "lahan_luas" | "pekarangan">("all");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   useEffect(() => {
     let active = true;
@@ -32,34 +49,51 @@ export default function RiwayatPage() {
         const items = await getAllHistory();
         if (active) setHistoryItems(items);
       } catch (err) {
-        console.error("Failed to load history:", err);
+        console.error("Gagal memuat riwayat:", err);
       } finally {
         if (active) setIsLoading(false);
       }
     })();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDelete = async (id: string) => {
-    await deleteHistoryItem(id);
-    setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+    if (window.confirm("Hapus catatan riwayat analisis ini?")) {
+      await deleteHistoryItem(id);
+      setHistoryItems((prev) => prev.filter((item) => item.id !== id));
+      showToast("Catatan berhasil dihapus dari penyimpanan perangkat.");
+    }
   };
 
   const handleClearAll = async () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus seluruh riwayat tersimpan?")) {
+    if (
+      window.confirm(
+        "Apakah Anda yakin ingin menghapus SELURUH riwayat diagnosis dan rencana aksi tersimpan?"
+      )
+    ) {
       await clearAllHistory();
       setHistoryItems([]);
+      showToast("Semua data riwayat telah dibersihkan.");
     }
   };
 
   const handleDownloadItemPdf = (item: HistoryItem) => {
-    const plant = PLANTS[item.plantType];
-    generateActionPlanPdf({
-      plant,
-      lahanLuasData: item.lahanLuasData,
-      pekaranganData: item.pekaranganData,
-      weatherData: item.weatherData,
-    });
+    try {
+      const plant = PLANTS[item.plantType] || PLANTS.padi;
+      generateActionPlanPdf({
+        fileName: `Rencana-Aksi-${item.plantType}-${item.id}.pdf`,
+        plant,
+        lahanLuasData: item.lahanLuasData,
+        pekaranganData: item.pekaranganData,
+        weatherData: item.weatherData,
+      });
+      showToast("Dokumen PDF 2 halaman berhasil diunduh.");
+    } catch (err) {
+      console.error("Gagal unduh PDF:", err);
+      showToast("Gagal mengunduh berkas PDF.");
+    }
   };
 
   const filteredItems = historyItems.filter((item) => {
@@ -68,207 +102,336 @@ export default function RiwayatPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full flex-1">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <span className="text-xs font-semibold text-[#5B6B60] uppercase tracking-wider">
-            Catatan Riwayat Mandiri
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 mt-1">
-            Riwayat Diagnosis & Rencana Aksi
-          </h1>
-          <p className="text-xs text-[#5B6B60] mt-1">
-            Data tersimpan di perangkat peramban Anda tanpa memerlukan akun atau koneksi server.
-          </p>
-        </div>
-
-        {historyItems.length > 0 && (
+    <div className="w-full max-w-full overflow-x-hidden min-h-screen bg-[#F9FBF8] text-[#1A1C18] pb-28 md:pb-20 font-sans">
+      
+      {/* ── STICKY TOP PROGRESS BAR & KEMBALI BUTTON ────────────────── */}
+      <div className="sticky top-0 z-40 bg-[#F9FBF8]/95 backdrop-blur-md border-b border-[#E0E6ED] shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <button
             type="button"
-            onClick={handleClearAll}
-            className="text-xs text-[#A63D2F] hover:underline inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
+            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full bg-white border border-[#E0E6ED] text-[#1B5E20] hover:bg-[#E8F5E9] font-semibold text-xs sm:text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
+            aria-label="Kembali ke halaman sebelumnya"
           >
-            <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-            <span>Hapus Semua Riwayat</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Kembali</span>
           </button>
-        )}
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 mb-6 border-b border-[#E6E2D8] pb-3 text-xs">
-        <button
-          type="button"
-          onClick={() => setFilterMode("all")}
-          className={`px-3 py-1.5 rounded-[6px] font-medium transition-colors cursor-pointer ${
-            filterMode === "all"
-              ? "bg-[#16251C] text-white"
-              : "text-[#5B6B60] hover:text-[#16251C]"
-          }`}
-        >
-          Semua Catatan ({historyItems.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterMode("lahan_luas")}
-          className={`px-3 py-1.5 rounded-[6px] font-medium transition-colors cursor-pointer ${
-            filterMode === "lahan_luas"
-              ? "bg-[#2F5D43] text-white"
-              : "text-[#5B6B60] hover:text-[#16251C]"
-          }`}
-        >
-          Lahan Luas ({historyItems.filter((i) => i.mode === "lahan_luas").length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterMode("pekarangan")}
-          className={`px-3 py-1.5 rounded-[6px] font-medium transition-colors cursor-pointer ${
-            filterMode === "pekarangan"
-              ? "bg-[#B5683F] text-white"
-              : "text-[#5B6B60] hover:text-[#16251C]"
-          }`}
-        >
-          Pekarangan ({historyItems.filter((i) => i.mode === "pekarangan").length})
-        </button>
-      </div>
-
-      {/* Content Area */}
-      {isLoading ? (
-        <div className="py-16 text-center space-y-2">
-          <div className="w-6 h-6 border-2 border-[#2F5D43] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-[#5B6B60]">Memuat riwayat tersimpan di perangkat...</p>
-        </div>
-      ) : filteredItems.length === 0 ? (
-        <div className="bg-white border border-[#E6E2D8] rounded-[10px] p-10 text-center space-y-4 max-w-lg mx-auto my-8">
-          <div className="w-12 h-12 rounded-full bg-[#FAF8F3] border border-[#E6E2D8] flex items-center justify-center text-[#5B6B60] mx-auto">
-            <FileText className="w-5 h-5" strokeWidth={1.5} />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold tracking-tight text-gray-900">
-              Belum Ada Riwayat Tersimpan
-            </h3>
-            <p className="text-xs text-[#5B6B60] mt-1 max-w-sm mx-auto leading-relaxed">
-              Hasil deteksi foto daun dan lembar rencana aksi yang Anda simpan akan muncul di sini untuk diakses kembali secara offline.
-            </p>
-          </div>
-          <div className="pt-2 flex justify-center gap-3">
-            <Link
-              href="/deteksi"
-              className="px-4 py-2 text-xs font-semibold rounded-[6px] bg-[#2F5D43] text-white hover:bg-[#244A35] transition-colors"
-            >
-              Mulai Deteksi Daun
-            </Link>
-            <Link
-              href="/hitung"
-              className="px-4 py-2 text-xs font-semibold rounded-[6px] border border-[#E6E2D8] bg-white text-[#16251C] hover:bg-[#FAF8F3] transition-colors"
-            >
-              Buka Kalkulator
-            </Link>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 hidden sm:inline">
+              Penyimpanan Offline
+            </span>
+            <span className="text-[11px] px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] font-extrabold border border-[#1B5E20]/20 shadow-xs">
+              🔒 Memori Lokal HP
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredItems.map((item) => {
-            const isTerracotta = item.mode === "pekarangan";
-            const formattedDate = new Date(item.createdAt).toLocaleDateString("id-ID", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            });
+      </div>
 
-            return (
-              <div
-                key={item.id}
-                className={`bg-white border border-[#E6E2D8] rounded-[10px] p-5 flex flex-col justify-between ${
-                  isTerracotta ? "border-t-[3px] border-t-[#B5683F]" : "border-t-[3px] border-t-[#2F5D43]"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between text-xs text-[#5B6B60] mb-2">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      <span>{formattedDate} WIB</span>
-                    </span>
-
-                    <span
-                      className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded ${
-                        isTerracotta
-                          ? "bg-[#B5683F]/10 text-[#B5683F]"
-                          : "bg-[#2F5D43]/10 text-[#2F5D43]"
-                      }`}
-                    >
-                      {item.mode === "lahan_luas" ? "Lahan Luas" : "Pekarangan"}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-bold tracking-tight text-gray-900">
-                    {item.plantName} — {item.diseaseName}
-                  </h3>
-
-                  <p className="text-xs text-[#5B6B60] mt-1">
-                    {item.calculationSummary.title}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#E6E2D8] text-xs">
-                    <div>
-                      <span className="text-[#5B6B60] block text-[10px] uppercase">
-                        Metrik Kunci
-                      </span>
-                      <span className="font-bold text-[#16251C] tabular-nums">
-                        {item.calculationSummary.keyMetric}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[#5B6B60] block text-[10px] uppercase">
-                        Total Anggaran
-                      </span>
-                      <span className="font-bold text-[#16251C] tabular-nums">
-                        Rp {item.calculationSummary.totalCost.toLocaleString("id-ID")}
-                      </span>
-                    </div>
-                  </div>
-
-                  {item.weatherLocation && (
-                    <div className="mt-2.5 text-[11px] text-[#5B6B60] flex items-center gap-1 truncate">
-                      <MapPin className="w-3 h-3 text-[#2F5D43] shrink-0" strokeWidth={1.5} />
-                      <span className="truncate">Lokasi Cuaca: {item.weatherLocation}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Card Action Buttons */}
-                <div className="mt-5 pt-3 border-t border-[#E6E2D8] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadItemPdf(item)}
-                      className="gap-1 text-xs"
-                    >
-                      <Download className="w-3.5 h-3.5" strokeWidth={1.5} />
-                      <span>Unduh PDF</span>
-                    </Button>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    className="p-2 text-[#5B6B60] hover:text-[#A63D2F] transition-colors rounded-[4px] cursor-pointer"
-                    title="Hapus rekaman ini"
-                  >
-                    <Trash2 className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+      {/* ── TOAST NOTIFICATION ────────────────────────────────────── */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1B5E20] text-white px-5 py-2.5 rounded-full shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2 border border-emerald-600 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+          <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* ── MAIN CONTENT CONTAINER ────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 animate-in fade-in duration-200">
+        
+        {/* Header Block */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E0E6ED] pb-6">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] text-xs font-bold border border-[#1B5E20]/20 shadow-xs mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Arsip &amp; Rekam Jejak Lapangan</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
+              Riwayat Diagnosis &amp; Rencana Aksi
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-2xl leading-relaxed">
+              Catatan hasil pemindaian kamera AI, dosis pupuk 5 Tepat, dan prakiraan cuaca BMKG tersimpan secara aman di peramban lokal perangkat Anda tanpa memerlukan login atau server luar.
+            </p>
+          </div>
+
+          {historyItems.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 font-bold text-xs transition-all shadow-xs active:scale-95 self-start sm:self-auto cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Hapus Semua Riwayat</span>
+            </button>
+          )}
+        </div>
+
+        {/* ── PILL FILTER SWITCHER ──────────────────────────────────── */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setFilterMode("all")}
+            className={`min-h-[38px] px-4 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              filterMode === "all"
+                ? "bg-[#1B5E20] text-white shadow-sm"
+                : "bg-white border border-[#E0E6ED] text-gray-700 hover:border-[#1B5E20]/50"
+            }`}
+          >
+            <span>Semua Catatan</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                filterMode === "all" ? "bg-white/20 text-white" : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {historyItems.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode("lahan_luas")}
+            className={`min-h-[38px] px-4 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              filterMode === "lahan_luas"
+                ? "bg-[#1B5E20] text-white shadow-sm"
+                : "bg-white border border-[#E0E6ED] text-gray-700 hover:border-[#1B5E20]/50"
+            }`}
+          >
+            <Sprout className="w-3.5 h-3.5" />
+            <span>Lahan Luas (Sawah)</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                filterMode === "lahan_luas"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {historyItems.filter((i) => i.mode === "lahan_luas").length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterMode("pekarangan")}
+            className={`min-h-[38px] px-4 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              filterMode === "pekarangan"
+                ? "bg-[#1B5E20] text-white shadow-sm"
+                : "bg-white border border-[#E0E6ED] text-gray-700 hover:border-[#1B5E20]/50"
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Pekarangan (Pot &amp; Polybag)</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                filterMode === "pekarangan"
+                  ? "bg-white/20 text-white"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
+              {historyItems.filter((i) => i.mode === "pekarangan").length}
+            </span>
+          </button>
+        </div>
+
+        {/* ── CONTENT AREA ─────────────────────────────────────────── */}
+        {isLoading ? (
+          <div className="py-20 text-center space-y-3 bg-white rounded-[22px] border border-[#E0E6ED] shadow-sm">
+            <div className="w-8 h-8 border-3 border-[#1B5E20] border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-sm font-semibold text-gray-700">
+              Memuat data riwayat dari penyimpanan lokal perangkat...
+            </p>
+          </div>
+        ) : filteredItems.length === 0 ? (
+          /* Empty State Bento Card */
+          <div className="bg-white border border-[#E0E6ED] rounded-[24px] p-8 sm:p-12 text-center space-y-5 max-w-xl mx-auto shadow-sm my-6">
+            <div className="relative w-16 h-16 rounded-full bg-[#E8F5E9] text-[#1B5E20] flex items-center justify-center mx-auto shadow-inner">
+              <FileText className="w-8 h-8" />
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#1B5E20] text-white flex items-center justify-center text-xs font-bold shadow">
+                +
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-xl font-extrabold text-[#1A1C18] tracking-tight">
+                Belum Ada Riwayat Tersimpan
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 max-w-md mx-auto leading-relaxed">
+                Hasil diagnosis patogen daun dan lembar rencana aksi yang Anda simpan akan tersusun rapi di sini untuk diunduh kembali menjadi PDF kapan pun secara offline.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+              <Link
+                href="/deteksi"
+                className="min-h-[48px] px-6 rounded-full bg-[#1B5E20] text-white hover:bg-[#144718] font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 inline-flex items-center justify-center gap-2"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Mulai Deteksi Daun</span>
+              </Link>
+              <Link
+                href="/hitung"
+                className="min-h-[48px] px-6 rounded-full bg-white border border-[#E0E6ED] text-[#1A1C18] hover:bg-gray-50 font-bold text-xs sm:text-sm transition-all shadow-sm active:scale-95 inline-flex items-center justify-center gap-2"
+              >
+                <Sprout className="w-4 h-4 text-emerald-800" />
+                <span>Kalkulator Dosis (5 Tepat)</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          /* History Cards Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {filteredItems.map((item) => {
+              const formattedDate = new Date(item.createdAt).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              const isHealthy = item.isHealthy;
+              const isLahan = item.mode === "lahan_luas";
+
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white border border-[#E0E6ED] rounded-[22px] p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 group relative"
+                >
+                  <div className="space-y-3.5">
+                    {/* Top Meta Strip */}
+                    <div className="flex items-center justify-between gap-2 border-b border-[#E0E6ED] pb-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 font-medium">
+                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                        <span>{formattedDate} WIB</span>
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                            isLahan
+                              ? "bg-[#E8F5E9] text-[#1B5E20] border border-[#1B5E20]/20"
+                              : "bg-amber-50 text-amber-900 border border-amber-200"
+                          }`}
+                        >
+                          {isLahan ? "🌾 Lahan Sawah" : "🪴 Pekarangan"}
+                        </span>
+
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                            isHealthy
+                              ? "bg-[#1B5E20] text-white"
+                              : "bg-[#C62828] text-white"
+                          }`}
+                        >
+                          {isHealthy ? "PRIMA" : "TERINFEKSI"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Plant & Disease Info with Optional Leaf Preview */}
+                    <div className="flex items-start gap-4">
+                      {item.imagePreviewUrl && (
+                        <div className="relative w-16 h-16 rounded-xl bg-gray-100 border border-[#E0E6ED] overflow-hidden shrink-0 shadow-inner">
+                          <Image
+                            src={item.imagePreviewUrl}
+                            alt={item.diseaseName}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1B5E20]">
+                          <Sprout className="w-3.5 h-3.5" />
+                          <span>{item.plantName}</span>
+                          <span className="text-gray-300">•</span>
+                          <span className="text-gray-500 font-normal">
+                            Keyakinan {item.confidenceScore.toFixed(1)}%
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-extrabold text-[#1A1C18] leading-tight truncate">
+                          {item.diseaseName}
+                        </h3>
+                        <p className="text-xs text-gray-500 line-clamp-1">
+                          {item.calculationSummary.title}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Metrics Bento Box */}
+                    <div className="grid grid-cols-2 gap-2.5 bg-[#F9FBF8] p-3 rounded-xl border border-[#E0E6ED] text-xs">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-500 block">
+                          Skala Terukur
+                        </span>
+                        <span className="font-extrabold text-[#1A1C18] text-sm tabular-nums truncate block mt-0.5">
+                          {item.calculationSummary.keyMetric}
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-gray-500 block">
+                          Estimasi Biaya
+                        </span>
+                        <span className="font-extrabold text-[#1B5E20] text-sm tabular-nums truncate block mt-0.5">
+                          Rp {item.calculationSummary.totalCost.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Weather Station Tag */}
+                    {item.weatherLocation && (
+                      <div className="text-[11px] text-gray-600 flex items-center gap-1.5 truncate">
+                        <MapPin className="w-3.5 h-3.5 text-[#0288D1] shrink-0" />
+                        <span className="truncate">Stasiun BMKG: {item.weatherLocation}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Bottom Actions */}
+                  <div className="pt-3 border-t border-[#E0E6ED] flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadItemPdf(item)}
+                        className="min-h-[38px] px-3.5 rounded-full bg-[#1B5E20] text-white hover:bg-[#144718] font-bold text-xs transition-all shadow-xs active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Unduh PDF</span>
+                      </button>
+
+                      <Link
+                        href={`/hasil?mode=${item.mode}&plant=${item.plantType}&disease=${item.diseaseId}`}
+                        className="min-h-[38px] px-3.5 rounded-full bg-white border border-[#E0E6ED] text-gray-700 hover:text-[#1B5E20] hover:border-[#1B5E20] font-bold text-xs transition-all shadow-xs active:scale-95 inline-flex items-center gap-1.5"
+                      >
+                        <span>Buka Detail</span>
+                        <ExternalLink className="w-3 h-3 text-gray-400" />
+                      </Link>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(item.id)}
+                      className="w-9 h-9 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center cursor-pointer"
+                      title="Hapus rekaman ini"
+                      aria-label="Hapus rekaman ini"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }
