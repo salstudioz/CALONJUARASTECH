@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
 import { getDiseaseById } from "../data/diseases";
+import { resolveDiseaseFromLabel } from "./teachableMachine";
 
 describe("Validasi Model Google Teachable Machine untuk Daun & Bukan Daun", () => {
   const modelDir = path.join(process.cwd(), "public", "models", "teachable_machine");
@@ -52,5 +53,50 @@ describe("Validasi Model Google Teachable Machine untuk Daun & Bukan Daun", () =
       expect(disease.symptoms.length).toBeGreaterThan(0);
       expect(disease.treatment.chemicalActive).toBeDefined();
     });
+  });
+
+  it("resolveDiseaseFromLabel mengenali seluruh komoditas Padi, Cabai, dan Tomat secara konsisten", () => {
+    // Test Padi
+    const padiBlas = resolveDiseaseFromLabel("Padi_Blas");
+    expect(padiBlas?.id).toBe("padi_blast");
+    expect(padiBlas?.plantType).toBe("padi");
+
+    const padiKresek = resolveDiseaseFromLabel("Padi_Hawar_Kresek");
+    expect(padiKresek?.id).toBe("padi_bacterial_leaf_blight");
+    expect(padiKresek?.plantType).toBe("padi");
+
+    const padiBercak = resolveDiseaseFromLabel("Padi_Bercak_Cokelat");
+    expect(padiBercak?.id).toBe("padi_brown_spot");
+    expect(padiBercak?.plantType).toBe("padi");
+
+    // Test Cabai
+    const cabaiKeriting = resolveDiseaseFromLabel("Cabai_Keriting");
+    expect(cabaiKeriting?.id).toBe("cabai_leaf_curl");
+    expect(cabaiKeriting?.plantType).toBe("cabai");
+
+    const cabaiBercak = resolveDiseaseFromLabel("Cabai_Bercak_Daun");
+    expect(cabaiBercak?.id).toBe("cabai_leaf_spot");
+    expect(cabaiBercak?.plantType).toBe("cabai");
+
+    const cabaiSehat = resolveDiseaseFromLabel("Cabai_Sehat");
+    expect(cabaiSehat?.id).toBe("cabai_healthy");
+    expect(cabaiSehat?.plantType).toBe("cabai");
+
+    // Test Tomat
+    const tomatEarly = resolveDiseaseFromLabel("Tomat_Early_Blight");
+    expect(tomatEarly?.id).toBe("tomat_early_blight");
+    expect(tomatEarly?.plantType).toBe("tomat");
+
+    const tomatLate = resolveDiseaseFromLabel("Tomat_Late_Blight");
+    expect(tomatLate?.id).toBe("tomat_late_blight");
+    expect(tomatLate?.plantType).toBe("tomat");
+
+    const tomatSehat = resolveDiseaseFromLabel("Tomat_Sehat");
+    expect(tomatSehat?.id).toBe("tomat_healthy");
+    expect(tomatSehat?.plantType).toBe("tomat");
+
+    // Test Bukan Daun
+    const bukanDaun = resolveDiseaseFromLabel("Bukan_Daun");
+    expect(bukanDaun).toBeUndefined();
   });
 });

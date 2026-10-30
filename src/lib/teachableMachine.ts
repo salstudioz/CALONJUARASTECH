@@ -27,19 +27,89 @@ export interface TMPrediction {
   modelSource: string;
 }
 
-// Label to Disease mapping table matching exact IDs in src/data/diseases.ts
-const LABEL_TO_DISEASE_MAP: Record<string, string> = {
+// Comprehensive mapping table matching all diseases across Padi, Cabai, and Tomat
+export const LABEL_TO_DISEASE_MAP: Record<string, string> = {
+  // --- PADI ---
   Padi_Sehat: "padi_healthy",
+  padi_healthy: "padi_healthy",
+  "Padi Sehat": "padi_healthy",
   Padi_Blas: "padi_blast",
+  padi_blast: "padi_blast",
+  "Padi Blas": "padi_blast",
   Padi_Hawar_Kresek: "padi_bacterial_leaf_blight",
+  padi_bacterial_leaf_blight: "padi_bacterial_leaf_blight",
+  "Padi Hawar Kresek": "padi_bacterial_leaf_blight",
+  Padi_Hawar_Daun_Bakteri: "padi_bacterial_leaf_blight",
   Padi_Bercak_Cokelat: "padi_brown_spot",
+  padi_brown_spot: "padi_brown_spot",
+  "Padi Bercak Cokelat": "padi_brown_spot",
+  Padi_Bercak_Coklat: "padi_brown_spot",
+
+  // --- CABAI ---
   Cabai_Sehat: "cabai_healthy",
+  cabai_healthy: "cabai_healthy",
+  "Cabai Sehat": "cabai_healthy",
   Cabai_Keriting: "cabai_leaf_curl",
+  cabai_leaf_curl: "cabai_leaf_curl",
+  "Cabai Keriting": "cabai_leaf_curl",
   Cabai_Bercak_Daun: "cabai_leaf_spot",
+  cabai_leaf_spot: "cabai_leaf_spot",
+  "Cabai Bercak Daun": "cabai_leaf_spot",
+  Cabai_Kutu_Kebul: "cabai_whitefly",
+  cabai_whitefly: "cabai_whitefly",
+  "Cabai Kutu Kebul": "cabai_whitefly",
+  Cabai_Klorosis: "cabai_yellowish_leaf",
+  cabai_yellowish_leaf: "cabai_yellowish_leaf",
+  "Cabai Klorosis": "cabai_yellowish_leaf",
+
+  // --- TOMAT ---
   Tomat_Sehat: "tomat_healthy",
+  tomat_healthy: "tomat_healthy",
+  "Tomat Sehat": "tomat_healthy",
   Tomat_Early_Blight: "tomat_early_blight",
+  tomat_early_blight: "tomat_early_blight",
+  "Tomat Early Blight": "tomat_early_blight",
   Tomat_Late_Blight: "tomat_late_blight",
+  tomat_late_blight: "tomat_late_blight",
+  "Tomat Late Blight": "tomat_late_blight",
+  Tomat_Kapang_Daun: "tomat_leaf_mold",
+  tomat_leaf_mold: "tomat_leaf_mold",
+  "Tomat Kapang Daun": "tomat_leaf_mold",
+  Tomat_Septoria: "tomat_septoria_leaf_spot",
+  tomat_septoria_leaf_spot: "tomat_septoria_leaf_spot",
+  "Tomat Septoria": "tomat_septoria_leaf_spot",
 };
+
+/**
+ * Resolves a DiseaseInfo object from any model class label with case-insensitive and normalized fallback.
+ */
+export function resolveDiseaseFromLabel(label: string): DiseaseInfo | undefined {
+  if (!label || label.toLowerCase().includes("bukan") || label.toLowerCase().includes("non")) {
+    return undefined;
+  }
+
+  // 1. Direct match in dictionary
+  const directId = LABEL_TO_DISEASE_MAP[label];
+  if (directId) {
+    const found = getDiseaseById(directId);
+    if (found) return found;
+  }
+
+  // 2. Normalized match (strip spaces, hyphens, underscores)
+  const normKey = label.toLowerCase().replace(/[\s\-_]+/g, "");
+  for (const [key, id] of Object.entries(LABEL_TO_DISEASE_MAP)) {
+    if (key.toLowerCase().replace(/[\s\-_]+/g, "") === normKey) {
+      const found = getDiseaseById(id);
+      if (found) return found;
+    }
+  }
+
+  // 3. Direct ID lookup in database
+  const directById = getDiseaseById(label.toLowerCase());
+  if (directById) return directById;
+
+  return undefined;
+}
 
 let cachedModel: any = null;
 let cachedMetadata: TMModelMetadata | null = null;
@@ -164,8 +234,7 @@ export async function predictWithTeachableMachine(
   }
 
   // Resolve mapped disease from Agronomy knowledge base
-  const diseaseId = LABEL_TO_DISEASE_MAP[top.className];
-  let mappedDisease: DiseaseInfo | undefined = diseaseId ? getDiseaseById(diseaseId) : undefined;
+  let mappedDisease: DiseaseInfo | undefined = resolveDiseaseFromLabel(top.className);
 
   // Fallback if cross-commodity or unmapped
   if (!mappedDisease) {

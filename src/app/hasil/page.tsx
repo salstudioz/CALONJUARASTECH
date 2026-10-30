@@ -38,7 +38,7 @@ import {
 } from "@/lib/calculator";
 import { saveHistoryItem } from "@/lib/storage";
 import { generateActionPlanPdf } from "@/lib/pdfGenerator";
-import { getDiseaseById, DiseaseInfo } from "@/data/diseases";
+import { getDiseaseById, getDiseasesByPlant, DISEASES, DiseaseInfo } from "@/data/diseases";
 
 function HasilContent() {
   const router = useRouter();
@@ -106,14 +106,16 @@ function HasilContent() {
 
   const plantInfo = PLANTS[plantType] || PLANTS.padi;
 
-  // Resolve disease info
-  const activeDisease: DiseaseInfo | undefined = useMemo(() => {
+  // Resolve disease info with guaranteed fallback for every commodity (padi, cabai, tomat)
+  const activeDisease: DiseaseInfo = useMemo(() => {
     if (diseaseId) {
       const found = getDiseaseById(diseaseId);
       if (found) return found;
     }
-    return lahanResult?.disease || pekaranganResult?.disease;
-  }, [diseaseId, lahanResult, pekaranganResult]);
+    if (lahanResult?.disease) return lahanResult.disease;
+    if (pekaranganResult?.disease) return pekaranganResult.disease;
+    return getDiseasesByPlant(plantType)[0] || DISEASES[0];
+  }, [diseaseId, lahanResult, pekaranganResult, plantType]);
 
   // Fetch BMKG Weather automatically from device coordinates or fallback
   useEffect(() => {
