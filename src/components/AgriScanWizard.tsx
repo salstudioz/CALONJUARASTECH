@@ -31,9 +31,10 @@ import {
   Sun,
   Layers,
   Sprout,
-  FileText,
   MapPin,
   RefreshCw,
+  Flame,
+  Apple,
 } from "lucide-react";
 
 import {
@@ -513,22 +514,14 @@ export function AgriScanWizard() {
            ══════════════════════════════════════════════════════════════ */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Header & Offline Badge */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
-                  AgriScan Pro
-                </h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Sistem Pendukung Keputusan Pertanian Presisi &amp; Perlindungan Tanaman.
-                </p>
-              </div>
-
-              {/* High-Contrast Offline Indicator Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#E8F5E9] border border-[#1B5E20]/30 text-[#1B5E20] text-xs font-semibold self-start sm:self-auto shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-[#1B5E20] animate-pulse" />
-                <span>Mode Offline — Data Tersimpan di Perangkat</span>
-              </div>
+            {/* Header */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
+                AgriScan Pro
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Sistem Pendukung Keputusan Pertanian Presisi &amp; Perlindungan Tanaman.
+              </p>
             </div>
 
             {/* Bento Grid: 2 Primary Cards with Photographic Cutouts BREAKING BOUNDARIES - ZERO Text Collision */}
@@ -682,23 +675,12 @@ export function AgriScanWizard() {
               </p>
             </div>
 
-            {/* Google Teachable Machine Active Model Pill */}
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-[16px] bg-[#E8F5E9] border border-[#1B5E20]/25 text-xs text-[#1B5E20] shadow-xs">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#1B5E20]" />
-                <span className="font-extrabold text-[#1B5E20]">Mesin AI: Google Teachable Machine (TensorFlow.js)</span>
-              </div>
-              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#1B5E20] text-white font-mono font-bold shrink-0">
-                Aktif &amp; Terlatih (11 Kelas)
-              </span>
-            </div>
-
             {/* Choice Selector Cards: [Padi], [Cabai], [Tomat] */}
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {[
-                { id: "padi", name: "Padi Sawah", icon: "🌾", desc: "Hawar, Blas, Bercak" },
-                { id: "cabai", name: "Cabai Merah", icon: "🌶️", desc: "Keriting, Bercak, Kutu" },
-                { id: "tomat", name: "Tomat Buah", icon: "🍅", desc: "Early/Late Blight" },
+                { id: "padi", name: "Padi Sawah", icon: <Sprout className="w-6 h-6 text-[#1B5E20]" />, desc: "Hawar, Blas, Bercak" },
+                { id: "cabai", name: "Cabai Merah", icon: <Flame className="w-6 h-6 text-red-600" />, desc: "Keriting, Bercak, Kutu" },
+                { id: "tomat", name: "Tomat Buah", icon: <Apple className="w-6 h-6 text-emerald-700" />, desc: "Early/Late Blight" },
               ].map((item) => {
                 const isSelected = selectedPlant === item.id;
                 return (
@@ -713,7 +695,7 @@ export function AgriScanWizard() {
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="text-2xl">{item.icon}</span>
+                      <div className="p-1 rounded-lg bg-white/80 border border-[#E0E6ED]/60">{item.icon}</div>
                       {isSelected && (
                         <span className="w-5 h-5 rounded-full bg-[#1B5E20] text-white flex items-center justify-center text-xs">
                           <Check className="w-3.5 h-3.5" />
@@ -839,8 +821,9 @@ export function AgriScanWizard() {
                     </div>
                     <div className="space-y-1.5 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-extrabold uppercase tracking-wider text-amber-950 bg-amber-200/80 px-2.5 py-0.5 rounded-full">
-                          ⚠️ Peringatan: Jenis Daun Berbeda
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-amber-950 bg-amber-200/80 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-900" />
+                          <span>Peringatan: Jenis Daun Berbeda</span>
                         </span>
                         <span className="text-[11px] font-mono font-bold text-amber-900 bg-white/70 px-2 py-0.5 rounded border border-amber-300">
                           Akurasi AI: {cropMismatch.confidence.toFixed(1)}%
@@ -1312,23 +1295,23 @@ export function AgriScanWizard() {
                   <div className="flex flex-wrap items-center gap-2 text-gray-700">
                     <span className="font-bold text-[#1B5E20]">Visualisasi Pola:</span>
                     {sistemTanam === "legowo_2_1" && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
-                        <span>🌾🌾 (2 Baris)</span>
-                        <span className="text-amber-700 font-bold">☀️ Lorong 40cm</span>
-                        <span>🌾🌾 (2 Baris)</span>
+                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
+                        <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 2 Baris</span>
+                        <span className="text-amber-700 font-bold inline-flex items-center gap-1"><Sun className="w-3.5 h-3.5 text-amber-500" /> Lorong 40cm</span>
+                        <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 2 Baris</span>
                         <span className="text-[11px] bg-emerald-200/80 px-1.5 rounded text-emerald-900 font-bold">+33,3% Populasi</span>
                       </span>
                     )}
                     {sistemTanam === "tegel" && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 font-semibold">
-                        <span>🌾 🌾 🌾 (Simetris 25×25 cm)</span>
+                        <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-gray-600" /> Simetris 25×25 cm</span>
                         <span className="text-[11px] bg-gray-200 px-1.5 rounded font-bold">Standar 80.000 rumpun/ha</span>
                       </span>
                     )}
                     {sistemTanam === "legowo_4_1" && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
-                        <span>🌾🌾🌾🌾 (4 Baris)</span>
-                        <span className="text-amber-700 font-bold">☀️ Lorong 40cm</span>
+                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
+                        <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 4 Baris</span>
+                        <span className="text-amber-700 font-bold inline-flex items-center gap-1"><Sun className="w-3.5 h-3.5 text-amber-500" /> Lorong 40cm</span>
                         <span className="text-[11px] bg-emerald-200/80 px-1.5 rounded text-emerald-900 font-bold">+25% Populasi</span>
                       </span>
                     )}
@@ -1347,7 +1330,8 @@ export function AgriScanWizard() {
                     </span>
                     {Number(phTanah) < 6.0 && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-bold text-[11px]">
-                        ⚠️ Butuh Dolomit 150g (pH {phTanah} Asam)
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                        <span>Butuh Dolomit 150g (pH {phTanah} Asam)</span>
                       </span>
                     )}
                   </div>
@@ -1524,12 +1508,15 @@ export function AgriScanWizard() {
                 <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#F9FBF8] border border-[#E0E6ED] self-start sm:self-center">
                   <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${geoState === "detecting" ? "bg-amber-400 animate-ping" : geoState === "gps" ? "bg-[#1B5E20] animate-pulse" : "bg-blue-500"}`} />
                   <div className="text-left">
-                    <span className="text-xs font-bold text-gray-800 block">
-                      {geoState === "detecting"
-                        ? "Mendeteksi GPS Perangkat..."
-                        : geoState === "gps"
-                        ? "📍 Deteksi Otomatis (GPS Perangkat)"
-                        : "📍 Stasiun Acuan Regional Default"}
+                    <span className="text-xs font-bold text-gray-800 block flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-[#1B5E20] shrink-0" />
+                      <span>
+                        {geoState === "detecting"
+                          ? "Mendeteksi GPS Perangkat..."
+                          : geoState === "gps"
+                          ? "Deteksi Otomatis (GPS Perangkat)"
+                          : "Stasiun Acuan Regional Default"}
+                      </span>
                     </span>
                     <span className="text-[10.5px] text-gray-500 block">
                       {geoState === "gps"

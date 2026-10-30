@@ -23,10 +23,6 @@ export default function HomePage() {
 
             {/* Left Column */}
             <div className="lg:col-span-7 space-y-5">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#E8F5E9] border border-[#1B5E20]/30 text-xs font-bold text-[#1B5E20] shadow-xs">
-                <ShieldCheck className="w-4 h-4 text-[#1B5E20]" />
-                <span>Sistem Keputusan Pertanian Terpadu</span>
-              </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-[2.85rem] font-extrabold text-[#1A1C18] leading-[1.18] tracking-tight">
                 Diagnosis Penyakit Tanaman &amp; Kalkulator Pupuk untuk Petani

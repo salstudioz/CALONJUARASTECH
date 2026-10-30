@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  Sun,
+  AlertTriangle,
 } from "lucide-react";
 import {
   FarmMode,
@@ -295,10 +297,10 @@ function HitungContent() {
               <div className="flex flex-wrap items-center gap-2 text-gray-700">
                 <span className="font-bold text-[#1B5E20]">Visualisasi Pola:</span>
                 {sistemTanam === "legowo_2_1" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
-                    <span>🌾🌾 (2 Baris)</span>
-                    <span className="text-amber-700 font-bold">☀️ Lorong 40cm</span>
-                    <span>🌾🌾 (2 Baris)</span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
+                    <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 2 Baris</span>
+                    <span className="text-amber-700 font-bold inline-flex items-center gap-1"><Sun className="w-3.5 h-3.5 text-amber-500" /> Lorong 40cm</span>
+                    <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 2 Baris</span>
                     <span className="text-[11px] bg-emerald-200/80 px-1.5 rounded text-emerald-900 font-bold">
                       +33,3% Populasi
                     </span>
@@ -306,16 +308,16 @@ function HitungContent() {
                 )}
                 {sistemTanam === "tegel" && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 font-semibold">
-                    <span>🌾 🌾 🌾 (Simetris 25×25 cm)</span>
+                    <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-gray-600" /> Simetris 25×25 cm</span>
                     <span className="text-[11px] bg-gray-200 px-1.5 rounded font-bold">
                       Standar 80.000 rumpun/ha
                     </span>
                   </span>
                 )}
                 {sistemTanam === "legowo_4_1" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
-                    <span>🌾🌾🌾🌾 (4 Baris)</span>
-                    <span className="text-amber-700 font-bold">☀️ Lorong 40cm</span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1B5E20] font-semibold">
+                    <span className="inline-flex items-center gap-1"><Sprout className="w-3.5 h-3.5 text-emerald-700" /> 4 Baris</span>
+                    <span className="text-amber-700 font-bold inline-flex items-center gap-1"><Sun className="w-3.5 h-3.5 text-amber-500" /> Lorong 40cm</span>
                     <span className="text-[11px] bg-emerald-200/80 px-1.5 rounded text-emerald-900 font-bold">
                       +25% Populasi
                     </span>
@@ -439,7 +441,8 @@ function HitungContent() {
                 </span>
                 {Number(phTanah) < 6.0 && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-bold text-[11px]">
-                    ⚠️ Butuh Dolomit 10–20g/pot (pH {phTanah} Asam)
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                    <span>Butuh Dolomit 10–20g/pot (pH {phTanah} Asam)</span>
                   </span>
                 )}
               </div>

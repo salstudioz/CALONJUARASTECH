@@ -341,10 +341,6 @@ function HasilContent() {
         {/* Page Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] text-xs font-bold border border-[#1B5E20]/20 shadow-xs mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Langkah 5: Rencana Aksi Lapangan &amp; Cuaca Terbuka BMKG</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
               Rencana Aksi &amp; Agrometeorologi
             </h1>
@@ -873,12 +869,15 @@ function HasilContent() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className={`w-2 h-2 rounded-full shrink-0 ${geoState === "detecting" ? "bg-amber-400 animate-ping" : geoState === "gps" ? "bg-[#1B5E20] animate-pulse" : "bg-blue-500"}`} />
                     <div className="min-w-0">
-                      <span className="text-[11px] font-bold text-gray-700 block truncate">
-                        {geoState === "detecting"
-                          ? "Mendeteksi koordinat GPS perangkat..."
-                          : geoState === "gps"
-                          ? "📍 Lokasi Otomatis (GPS Perangkat)"
-                          : "📍 Lokasi Stasiun Regional Default"}
+                      <span className="text-[11px] font-bold text-gray-700 block truncate flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#1B5E20] shrink-0" />
+                        <span>
+                          {geoState === "detecting"
+                            ? "Mendeteksi koordinat GPS perangkat..."
+                            : geoState === "gps"
+                            ? "Lokasi Otomatis (GPS Perangkat)"
+                            : "Lokasi Stasiun Regional Default"}
+                        </span>
                       </span>
                       <span className="text-[10px] text-gray-500 block truncate">
                         {geoState === "gps"

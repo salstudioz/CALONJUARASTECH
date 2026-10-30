@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   AlertCircle,
   RotateCcw,
+  AlertTriangle,
+  Flame,
 } from "lucide-react";
 
 export function AgronomyVisualizer() {
@@ -130,10 +132,10 @@ export function AgronomyVisualizer() {
                       {Array.from({ length: 8 }).map((_, i) => (
                         <div
                           key={`r1-${i}`}
-                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center text-xs font-bold text-[#1B5E20] shadow-xs cursor-pointer hover:scale-105 transition-transform"
+                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 transition-transform"
                           title="Baris 1: Tanaman Pinggir (Menerima Sinar Penuh)"
                         >
-                          🌾
+                          <Sprout className="w-4 h-4 text-[#1B5E20]" />
                         </div>
                       ))}
                     </div>
@@ -141,10 +143,10 @@ export function AgronomyVisualizer() {
                       {Array.from({ length: 8 }).map((_, i) => (
                         <div
                           key={`r2-${i}`}
-                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center text-xs font-bold text-[#1B5E20] shadow-xs cursor-pointer hover:scale-105 transition-transform"
+                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 transition-transform"
                           title="Baris 2: Tanaman Pinggir (Menerima Sinar Penuh)"
                         >
-                          🌾
+                          <Sprout className="w-4 h-4 text-[#1B5E20]" />
                         </div>
                       ))}
                     </div>
@@ -170,9 +172,9 @@ export function AgronomyVisualizer() {
                       {Array.from({ length: 8 }).map((_, i) => (
                         <div
                           key={`r3-${i}`}
-                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center text-xs font-bold text-[#1B5E20] shadow-xs cursor-pointer hover:scale-105 transition-transform"
+                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 transition-transform"
                         >
-                          🌾
+                          <Sprout className="w-4 h-4 text-[#1B5E20]" />
                         </div>
                       ))}
                     </div>
@@ -180,9 +182,9 @@ export function AgronomyVisualizer() {
                       {Array.from({ length: 8 }).map((_, i) => (
                         <div
                           key={`r4-${i}`}
-                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center text-xs font-bold text-[#1B5E20] shadow-xs cursor-pointer hover:scale-105 transition-transform"
+                          className="h-10 rounded-lg bg-emerald-100 border-2 border-[#1B5E20] flex items-center justify-center shadow-xs cursor-pointer hover:scale-105 transition-transform"
                         >
-                          🌾
+                          <Sprout className="w-4 h-4 text-[#1B5E20]" />
                         </div>
                       ))}
                     </div>
@@ -345,10 +347,10 @@ export function AgronomyVisualizer() {
                   {Array.from({ length: 24 }).map((_, i) => (
                     <div
                       key={`tegel-${i}`}
-                      className="h-10 rounded-lg bg-white border border-[#E0E6ED] flex flex-col items-center justify-center text-xs font-bold text-gray-700 shadow-xs"
+                      className="h-10 rounded-lg bg-white border border-[#E0E6ED] flex flex-col items-center justify-center shadow-xs"
                       title="Jarak Seragam 25x25 cm: Rumpun tengah ternaungi daun di sekitarnya"
                     >
-                      🌾
+                      <Sprout className="w-4 h-4 text-gray-500" />
                     </div>
                   ))}
                 </div>
@@ -433,9 +435,9 @@ export function AgronomyVisualizer() {
                     {Array.from({ length: 32 }).map((_, i) => (
                       <div
                         key={`l4-${i}`}
-                        className="h-8 rounded-md bg-emerald-100 border border-[#1B5E20] flex items-center justify-center text-[11px]"
+                        className="h-8 rounded-md bg-emerald-100 border border-[#1B5E20] flex items-center justify-center"
                       >
-                        🌾
+                        <Sprout className="w-3.5 h-3.5 text-[#1B5E20]" />
                       </div>
                     ))}
                   </div>
@@ -451,9 +453,9 @@ export function AgronomyVisualizer() {
                     {Array.from({ length: 16 }).map((_, i) => (
                       <div
                         key={`l4b-${i}`}
-                        className="h-8 rounded-md bg-emerald-100 border border-[#1B5E20] flex items-center justify-center text-[11px]"
+                        className="h-8 rounded-md bg-emerald-100 border border-[#1B5E20] flex items-center justify-center"
                       >
-                        🌾
+                        <Sprout className="w-3.5 h-3.5 text-[#1B5E20]" />
                       </div>
                     ))}
                   </div>
@@ -518,8 +520,8 @@ export function AgronomyVisualizer() {
 
               {/* Visual Container Mockup */}
               <div className="max-w-md mx-auto bg-white border-2 border-gray-300 rounded-3xl p-5 shadow-sm space-y-3">
-                <div className="text-center text-4xl -mb-2">
-                  🌶️
+                <div className="text-center py-1">
+                  <Flame className="w-10 h-10 text-red-600 mx-auto" />
                 </div>
 
                 {/* Layer 1: Kompos Organik (33.3%) */}
@@ -579,12 +581,14 @@ export function AgronomyVisualizer() {
 
                 <div className="text-[11px] text-gray-700 leading-snug">
                   {phSlider < 6.0 ? (
-                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-medium">
-                      ⚠️ <strong>Peringatan pH {phSlider.toFixed(1)}:</strong> Tanah masam mengikat unsur Fosfor (P) sehingga tanaman kerdil. Tambahkan <strong>150 gram Dolomit per 10 wadah polybag</strong> saat mencampur media.
+                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-medium flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                      <div><strong>Peringatan pH {phSlider.toFixed(1)}:</strong> Tanah masam mengikat unsur Fosfor (P) sehingga tanaman kerdil. Tambahkan <strong>150 gram Dolomit per 10 wadah polybag</strong> saat mencampur media.</div>
                     </div>
                   ) : (
-                    <div className="p-2.5 rounded-lg bg-[#E8F5E9] border border-[#1B5E20]/20 text-[#1B5E20] font-medium">
-                      ✅ <strong>Kondisi Ideal pH {phSlider.toFixed(1)}:</strong> Unsur hara N-P-K dan kalsium dapat diserap sempurna oleh akar serabut.
+                    <div className="p-2.5 rounded-lg bg-[#E8F5E9] border border-[#1B5E20]/20 text-[#1B5E20] font-medium flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-[#1B5E20] shrink-0 mt-0.5" />
+                      <div><strong>Kondisi Ideal pH {phSlider.toFixed(1)}:</strong> Unsur hara N-P-K dan kalsium dapat diserap sempurna oleh akar serabut.</div>
                     </div>
                   )}
                 </div>
@@ -724,8 +728,8 @@ export function AgronomyVisualizer() {
 
               {/* Visual Knapsack Sprayer */}
               <div className="max-w-md mx-auto bg-white border-2 border-[#0288D1]/30 rounded-3xl p-5 shadow-sm space-y-4 text-center">
-                <div className="text-5xl">
-                  🎒
+                <div className="flex justify-center py-1">
+                  <Droplets className="w-12 h-12 text-[#0288D1] p-2 bg-blue-50 rounded-2xl border border-blue-200" />
                 </div>
 
                 <div className="space-y-1.5">

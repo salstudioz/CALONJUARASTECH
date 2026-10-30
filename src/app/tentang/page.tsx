@@ -20,6 +20,8 @@ import {
   ArrowRight,
   Layers,
   Info,
+  Check,
+  X,
 } from "lucide-react";
 import { DISEASES } from "@/data/diseases";
 
@@ -63,15 +65,6 @@ export default function PanduanPage() {
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali</span>
           </button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 hidden sm:inline">
-              Pusat Pengetahuan
-            </span>
-            <span className="text-[11px] px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] font-extrabold border border-[#1B5E20]/20 shadow-xs">
-              SOP Kementan RI &amp; BMKG
-            </span>
-          </div>
         </div>
       </div>
 
@@ -81,10 +74,6 @@ export default function PanduanPage() {
         {/* Header Block */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E0E6ED] pb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] text-xs font-bold border border-[#1B5E20]/20 shadow-xs mb-2">
-              <FileCheck2 className="w-3.5 h-3.5" />
-              <span>Standar Operasional Prosedur (SOP) Agronomi Presisi</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
               Panduan Praktis Lapangan &amp; SOP Agronomi
             </h1>
@@ -213,19 +202,19 @@ export default function PanduanPage() {
                   </div>
                   <ul className="space-y-2 text-xs text-gray-800">
                     <li className="flex items-start gap-2">
-                      <span className="text-[#1B5E20] font-bold">✓</span>
+                      <Check className="w-3.5 h-3.5 text-[#1B5E20] shrink-0 mt-0.5" />
                       <span><strong>Satu helai daun dominan</strong> memenuhi 70–80% frame foto.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#1B5E20] font-bold">✓</span>
+                      <Check className="w-3.5 h-3.5 text-[#1B5E20] shrink-0 mt-0.5" />
                       <span><strong>Bercak / lesi terlihat kontras</strong> dengan batas warna hijau daun sehat di sekitarnya.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#1B5E20] font-bold">✓</span>
+                      <Check className="w-3.5 h-3.5 text-[#1B5E20] shrink-0 mt-0.5" />
                       <span><strong>Cahaya terang baur (difusi)</strong>, bayangan tubuh atau HP tidak menutupi bercak.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#1B5E20] font-bold">✓</span>
+                      <Check className="w-3.5 h-3.5 text-[#1B5E20] shrink-0 mt-0.5" />
                       <span><strong>Kamera stabil</strong> tanpa efek blur gerakan angin atau tangan gemetar.</span>
                     </li>
                   </ul>
@@ -239,19 +228,19 @@ export default function PanduanPage() {
                   </div>
                   <ul className="space-y-2 text-xs text-gray-800">
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">✗</span>
+                      <X className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span><strong>Foto seluruh pohon / rumpun dari jauh (&gt;50 cm)</strong> sehingga lesi daun tidak terpetakan.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">✗</span>
+                      <X className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span><strong>Kamera buram / goyang</strong> karena angin sawah kencang saat tombol ditekan.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">✗</span>
+                      <X className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span><strong>Menghadap matahari langsung (backlight)</strong> sehingga daun tampak gelap siluet.</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-red-600 font-bold">✗</span>
+                      <X className="w-3.5 h-3.5 text-red-600 shrink-0 mt-0.5" />
                       <span><strong>Daun berlumpur atau basah kuyup sehabis hujan lebat</strong> yang mengaburkan pola bercak spora.</span>
                     </li>
                   </ul>

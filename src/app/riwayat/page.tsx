@@ -122,15 +122,6 @@ export default function RiwayatPage() {
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali</span>
           </button>
-
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 hidden sm:inline">
-              Penyimpanan Offline
-            </span>
-            <span className="text-[11px] px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] font-extrabold border border-[#1B5E20]/20 shadow-xs">
-              🔒 Memori Lokal HP
-            </span>
-          </div>
         </div>
       </div>
 
@@ -148,10 +139,6 @@ export default function RiwayatPage() {
         {/* Header Block */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E0E6ED] pb-6">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E8F5E9] text-[#1B5E20] text-xs font-bold border border-[#1B5E20]/20 shadow-xs mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Arsip &amp; Rekam Jejak Lapangan</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A1C18] tracking-tight">
               Riwayat Diagnosis &amp; Rencana Aksi
             </h1>
@@ -312,13 +299,23 @@ export default function RiwayatPage() {
 
                       <div className="flex items-center gap-1.5">
                         <span
-                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 ${
                             isLahan
                               ? "bg-[#E8F5E9] text-[#1B5E20] border border-[#1B5E20]/20"
                               : "bg-amber-50 text-amber-900 border border-amber-200"
                           }`}
                         >
-                          {isLahan ? "🌾 Lahan Sawah" : "🪴 Pekarangan"}
+                          {isLahan ? (
+                            <>
+                              <Sprout className="w-3 h-3" />
+                              <span>Lahan Sawah</span>
+                            </>
+                          ) : (
+                            <>
+                              <Layers className="w-3 h-3" />
+                              <span>Pekarangan</span>
+                            </>
+                          )}
                         </span>
 
                         <span
