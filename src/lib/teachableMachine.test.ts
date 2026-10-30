@@ -100,37 +100,41 @@ describe("Validasi Model Google Teachable Machine untuk Daun & Bukan Daun", () =
     expect(bukanDaun).toBeUndefined();
   });
 
-  it("mendeteksi ketidaksesuaian komoditas (crop mismatch) saat foto berbeda dari tanaman yang dipilih", () => {
-    // Skenario 1: User memilih 'padi', tetapi foto yang diunggah terdeteksi 'Cabai_Keriting'
-    const selectedPlant1 = "padi";
-    const detectedDisease1 = resolveDiseaseFromLabel("Cabai_Keriting");
-    expect(detectedDisease1).toBeDefined();
-    const isMismatch1 = detectedDisease1!.plantType !== selectedPlant1;
-    expect(isMismatch1).toBe(true);
-    expect(detectedDisease1!.plantType).toBe("cabai");
+  it("mendeteksi ketidaksesuaian komoditas (crop mismatch) untuk seluruh 6 permutasi komoditas secara konsisten", () => {
+    // 1. Padi -> Cabai
+    const d1 = resolveDiseaseFromLabel("Cabai_Keriting");
+    expect(d1?.plantType).toBe("cabai");
+    expect(d1?.plantType !== "padi").toBe(true);
 
-    // Skenario 2: User memilih 'cabai', tetapi foto yang diunggah terdeteksi 'Tomat_Early_Blight'
-    const selectedPlant2 = "cabai";
-    const detectedDisease2 = resolveDiseaseFromLabel("Tomat_Early_Blight");
-    expect(detectedDisease2).toBeDefined();
-    const isMismatch2 = detectedDisease2!.plantType !== selectedPlant2;
-    expect(isMismatch2).toBe(true);
-    expect(detectedDisease2!.plantType).toBe("tomat");
+    // 2. Padi -> Tomat
+    const d2 = resolveDiseaseFromLabel("Tomat_Early_Blight");
+    expect(d2?.plantType).toBe("tomat");
+    expect(d2?.plantType !== "padi").toBe(true);
 
-    // Skenario 3: User memilih 'tomat', tetapi foto yang diunggah terdeteksi 'Padi_Blas'
-    const selectedPlant3 = "tomat";
-    const detectedDisease3 = resolveDiseaseFromLabel("Padi_Blas");
-    expect(detectedDisease3).toBeDefined();
-    const isMismatch3 = detectedDisease3!.plantType !== selectedPlant3;
-    expect(isMismatch3).toBe(true);
-    expect(detectedDisease3!.plantType).toBe("padi");
+    // 3. Cabai -> Padi
+    const d3 = resolveDiseaseFromLabel("Padi_Blas");
+    expect(d3?.plantType).toBe("padi");
+    expect(d3?.plantType !== "cabai").toBe(true);
 
-    // Skenario 4: User memilih 'padi', dan foto cocok dengan 'Padi_Hawar_Kresek'
-    const selectedPlant4 = "padi";
-    const detectedDisease4 = resolveDiseaseFromLabel("Padi_Hawar_Kresek");
-    expect(detectedDisease4).toBeDefined();
-    const isMismatch4 = detectedDisease4!.plantType !== selectedPlant4;
-    expect(isMismatch4).toBe(false);
+    // 4. Cabai -> Tomat
+    const d4 = resolveDiseaseFromLabel("Tomat_Late_Blight");
+    expect(d4?.plantType).toBe("tomat");
+    expect(d4?.plantType !== "cabai").toBe(true);
+
+    // 5. Tomat -> Padi
+    const d5 = resolveDiseaseFromLabel("Padi_Hawar_Kresek");
+    expect(d5?.plantType).toBe("padi");
+    expect(d5?.plantType !== "tomat").toBe(true);
+
+    // 6. Tomat -> Cabai
+    const d6 = resolveDiseaseFromLabel("Cabai_Bercak_Daun");
+    expect(d6?.plantType).toBe("cabai");
+    expect(d6?.plantType !== "tomat").toBe(true);
+
+    // Skenario Tanaman Cocok
+    expect(resolveDiseaseFromLabel("Padi_Bercak_Cokelat")?.plantType).toBe("padi");
+    expect(resolveDiseaseFromLabel("Cabai_Sehat")?.plantType).toBe("cabai");
+    expect(resolveDiseaseFromLabel("Tomat_Sehat")?.plantType).toBe("tomat");
   });
 });
 

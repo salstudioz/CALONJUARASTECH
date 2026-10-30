@@ -110,10 +110,10 @@ function HasilContent() {
   const activeDisease: DiseaseInfo = useMemo(() => {
     if (diseaseId) {
       const found = getDiseaseById(diseaseId);
-      if (found) return found;
+      if (found && found.plantType === plantType) return found;
     }
-    if (lahanResult?.disease) return lahanResult.disease;
-    if (pekaranganResult?.disease) return pekaranganResult.disease;
+    if (lahanResult?.disease && lahanResult.disease.plantType === plantType) return lahanResult.disease;
+    if (pekaranganResult?.disease && pekaranganResult.disease.plantType === plantType) return pekaranganResult.disease;
     return getDiseasesByPlant(plantType)[0] || DISEASES[0];
   }, [diseaseId, lahanResult, pekaranganResult, plantType]);
 

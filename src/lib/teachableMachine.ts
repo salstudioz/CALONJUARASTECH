@@ -21,6 +21,8 @@ export interface TMPrediction {
   percentage: number;
   isLeaf: boolean;
   rejectionReason?: string;
+  detectedPlantType?: PlantType;
+  plantScores?: Record<PlantType, number>;
   mappedDisease?: DiseaseInfo;
   probabilities: TMClassProbability[];
   latencyMs: number;
@@ -210,11 +212,29 @@ export async function predictWithTeachableMachine(
   const endTime = performance.now();
   const latencyMs = Math.max(18, Math.round(endTime - startTime));
 
+  // 1. Calculate aggregated evidence per commodity
+  const plantScores: Record<PlantType, number> = {
+    padi: 0,
+    cabai: 0,
+    tomat: 0,
+  };
+  let nonLeafScore = 0;
+
+  results.forEach((item) => {
+    const disease = resolveDiseaseFromLabel(item.className);
+    if (disease) {
+      plantScores[disease.plantType] = (plantScores[disease.plantType] || 0) + item.probability;
+    } else {
+      nonLeafScore += item.probability;
+    }
+  });
+
   // Determine if it's Bukan_Daun (non-leaf)
   const isBukanDaun =
     top.className.toLowerCase().includes("bukan") ||
     top.className.toLowerCase().includes("non") ||
-    top.probability < 0.25;
+    nonLeafScore > 0.45 ||
+    (plantScores.padi + plantScores.cabai + plantScores.tomat) < 0.25;
 
   if (isBukanDaun) {
     const fallbackHealthy = getDiseasesByPlant(selectedPlant).find((d) => d.isHealthy) || getDiseasesByPlant(selectedPlant)[0];
@@ -226,6 +246,8 @@ export async function predictWithTeachableMachine(
       isLeaf: false,
       rejectionReason:
         "Model Google Teachable Machine mendeteksi objek ini sebagai Bukan Daun Tanaman. Harap potret helai daun tanaman padi, cabai, atau tomat hidup.",
+      detectedPlantType: selectedPlant,
+      plantScores,
       mappedDisease: fallbackHealthy,
       probabilities: results,
       latencyMs,
@@ -233,21 +255,46 @@ export async function predictWithTeachableMachine(
     };
   }
 
-  // Resolve mapped disease from Agronomy knowledge base
-  let mappedDisease: DiseaseInfo | undefined = resolveDiseaseFromLabel(top.className);
+  // 2. Identify winning commodity by cumulative visual evidence
+  const allPlants: PlantType[] = ["padi", "cabai", "tomat"];
+  let detectedPlantType: PlantType = selectedPlant;
+  let maxPlantScore = -1;
 
-  // Fallback if cross-commodity or unmapped
+  for (const p of allPlants) {
+    if (plantScores[p] > maxPlantScore) {
+      maxPlantScore = plantScores[p];
+      detectedPlantType = p;
+    }
+  }
+
+  // Find top disease specifically belonging to the winning detectedPlantType
+  const topClassForDetectedPlant = results.find((r) => {
+    const d = resolveDiseaseFromLabel(r.className);
+    return d && d.plantType === detectedPlantType;
+  });
+
+  let mappedDisease: DiseaseInfo | undefined = topClassForDetectedPlant
+    ? resolveDiseaseFromLabel(topClassForDetectedPlant.className)
+    : undefined;
+
+  // Fallback within the detected plant
   if (!mappedDisease) {
-    const plantDiseases = getDiseasesByPlant(selectedPlant);
+    const plantDiseases = getDiseasesByPlant(detectedPlantType);
     mappedDisease = plantDiseases.find((d) => !d.isHealthy) || plantDiseases[0];
   }
 
+  const calibratedConfidence = topClassForDetectedPlant
+    ? Math.min(99.2, Math.max(55.0, topClassForDetectedPlant.percentage))
+    : Math.min(99.2, Math.max(55.0, Math.round(maxPlantScore * 1000) / 10));
+
   return {
     isModelLoaded: true,
-    topClass: top.className,
-    topProbability: top.probability,
-    percentage: Math.min(99.2, Math.max(55.0, top.percentage)), // Safe calibrated display confidence
+    topClass: topClassForDetectedPlant ? topClassForDetectedPlant.className : top.className,
+    topProbability: topClassForDetectedPlant ? topClassForDetectedPlant.probability : top.probability,
+    percentage: calibratedConfidence,
     isLeaf: true,
+    detectedPlantType,
+    plantScores,
     mappedDisease,
     probabilities: results,
     latencyMs,

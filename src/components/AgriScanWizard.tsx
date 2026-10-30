@@ -201,13 +201,17 @@ export function AgriScanWizard() {
   useEffect(() => {
     const current = getDiseaseById(selectedDiseaseId);
     if (!current || current.plantType !== selectedPlant) {
+      if (predictionResult?.disease && predictionResult.disease.plantType === selectedPlant) {
+        setSelectedDiseaseId(predictionResult.disease.id);
+        return;
+      }
       const available = getDiseasesByPlant(selectedPlant);
       if (available.length > 0) {
         const target = available.find((d) => !d.isHealthy) || available[0];
         setSelectedDiseaseId(target.id);
       }
     }
-  }, [selectedPlant, selectedDiseaseId]);
+  }, [selectedPlant, selectedDiseaseId, predictionResult]);
 
   // Show Toast Helper
   const showToast = (msg: string) => {
@@ -239,11 +243,12 @@ export function AgriScanWizard() {
 
   // Active Disease Info
   const currentDiseaseInfo: DiseaseInfo = useMemo(() => {
-    return (
-      getDiseaseById(selectedDiseaseId) ||
-      getDiseasesByPlant(selectedPlant)[0] ||
-      DISEASES[0]
-    );
+    const found = getDiseaseById(selectedDiseaseId);
+    if (found && found.plantType === selectedPlant) {
+      return found;
+    }
+    const plantDiseases = getDiseasesByPlant(selectedPlant);
+    return plantDiseases.find((d) => !d.isHealthy) || plantDiseases[0] || DISEASES[0];
   }, [selectedDiseaseId, selectedPlant]);
 
   // ── IMAGE FILE HANDLER & INFERENCE ─────────────────────────────
@@ -257,12 +262,6 @@ export function AgriScanWizard() {
     // Reset input value so re-selecting same file triggers onChange
     e.target.value = "";
     await executeInference(objectUrl);
-  };
-
-  const handleSelectSampleImage = async (url: string, name: string) => {
-    setImageFileName(name);
-    setSelectedImage(url);
-    await executeInference(url);
   };
 
   const executeInference = async (imgSrc: string) => {
@@ -304,10 +303,11 @@ export function AgriScanWizard() {
       }
 
       // 3. Crop Mismatch Detection Check (User selected plant A, but leaf is plant B)
-      if (tmOutput?.mappedDisease && tmOutput.mappedDisease.plantType !== selectedPlant) {
+      const detectedPlant = tmOutput?.detectedPlantType || tmOutput?.mappedDisease?.plantType;
+      if (detectedPlant && detectedPlant !== selectedPlant && tmOutput?.mappedDisease) {
         setCropMismatch({
           selectedPlant,
-          detectedPlant: tmOutput.mappedDisease.plantType,
+          detectedPlant,
           detectedDisease: tmOutput.mappedDisease,
           confidence: tmOutput.percentage,
         });
@@ -345,8 +345,6 @@ export function AgriScanWizard() {
     const targetPlant = cropMismatch.detectedPlant;
     const targetDisease = cropMismatch.detectedDisease;
 
-    setSelectedPlant(targetPlant);
-    setSelectedDiseaseId(targetDisease.id);
     setPlantRedirectNotice({
       from: cropMismatch.selectedPlant,
       to: targetPlant,
@@ -357,6 +355,9 @@ export function AgriScanWizard() {
       predictionResult.confidence = cropMismatch.confidence;
     }
 
+    setSelectedPlant(targetPlant);
+    setSelectedDiseaseId(targetDisease.id);
+
     setCropMismatch(null);
     showToast(`Komoditas dialihkan ke ${PLANTS[targetPlant]?.name || targetPlant}.`);
     setCurrentStep(3);
@@ -365,6 +366,15 @@ export function AgriScanWizard() {
   const handleForceKeepPlant = () => {
     if (!cropMismatch) return;
     const originalPlant = cropMismatch.selectedPlant;
+    const available = getDiseasesByPlant(originalPlant);
+    const targetDisease = available.find((d) => !d.isHealthy) || available[0];
+
+    setSelectedPlant(originalPlant);
+    setSelectedDiseaseId(targetDisease.id);
+    if (predictionResult) {
+      predictionResult.disease = targetDisease;
+    }
+
     setCropMismatch(null);
     showToast(`Melanjutkan analisis sebagai ${PLANTS[originalPlant]?.name || originalPlant}.`);
     setCurrentStep(3);
@@ -905,71 +915,6 @@ export function AgriScanWizard() {
                   <span>Pilih dari Galeri</span>
                 </button>
               </div>
-
-              {/* Quick Demo Sample Leaf Buttons */}
-              <div className="pt-3 border-t border-dashed border-[#E0E6ED]">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-gray-500">
-                    Atau uji cepat dengan foto sampel:
-                  </span>
-                  <span className="text-[11px] text-[#1B5E20] font-medium bg-[#E8F5E9] px-2 py-0.5 rounded-full">
-                    1-Klik Demo
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <button
-                    type="button"
-                    id="sample-btn-padi"
-                    onClick={() => handleSelectSampleImage("/images/samples/padi_kresek.jpg", "padi_kresek.jpg")}
-                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-emerald-50 hover:border-emerald-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
-                  >
-                    <span className="text-xl">🌾</span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-800 group-hover:text-emerald-800 truncate">Daun Padi</p>
-                      <p className="text-[10px] text-gray-500 truncate">Hawar Kresek</p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="sample-btn-cabai"
-                    onClick={() => handleSelectSampleImage("/images/samples/cabai_keriting.jpg", "cabai_keriting.jpg")}
-                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-amber-50 hover:border-amber-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
-                  >
-                    <span className="text-xl">🌶️</span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-800 group-hover:text-amber-800 truncate">Daun Cabai</p>
-                      <p className="text-[10px] text-gray-500 truncate">Keriting Kuning</p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="sample-btn-tomat"
-                    onClick={() => handleSelectSampleImage("/images/samples/tomat_early_blight.jpg", "tomat_early_blight.jpg")}
-                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-red-50 hover:border-red-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
-                  >
-                    <span className="text-xl">🍅</span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-800 group-hover:text-red-800 truncate">Daun Tomat</p>
-                      <p className="text-[10px] text-gray-500 truncate">Early Blight</p>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    id="sample-btn-bukan-daun"
-                    onClick={() => handleSelectSampleImage("/images/samples/bukan_daun_meja.jpg", "bukan_daun_meja.jpg")}
-                    className="p-2.5 rounded-xl border border-gray-200 bg-white hover:bg-rose-50 hover:border-rose-300 text-left transition-all text-xs cursor-pointer flex items-center gap-2 shadow-xs group"
-                  >
-                    <span className="text-xl">🪵</span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-800 group-hover:text-rose-800 truncate">Bukan Daun</p>
-                      <p className="text-[10px] text-gray-500 truncate">Uji Penolakan</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Bottom Controls */}
@@ -1009,9 +954,16 @@ export function AgriScanWizard() {
                 <button
                   type="button"
                   onClick={() => {
-                    setSelectedPlant(plantRedirectNotice.from);
+                    const origPlant = plantRedirectNotice.from;
+                    const available = getDiseasesByPlant(origPlant);
+                    const targetDisease = available.find((d) => !d.isHealthy) || available[0];
+                    setSelectedPlant(origPlant);
+                    setSelectedDiseaseId(targetDisease.id);
+                    if (predictionResult) {
+                      predictionResult.disease = targetDisease;
+                    }
                     setPlantRedirectNotice(null);
-                    showToast(`Dikembalikan ke ${PLANTS[plantRedirectNotice.from]?.name}.`);
+                    showToast(`Dikembalikan ke ${PLANTS[origPlant]?.name}.`);
                   }}
                   className="px-3.5 py-1.5 rounded-full bg-white border border-amber-300 text-amber-950 hover:bg-amber-100 font-bold text-xs shrink-0 cursor-pointer shadow-xs"
                 >
