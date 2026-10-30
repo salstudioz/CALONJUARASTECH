@@ -313,15 +313,23 @@ Hal ini menjamin prakiraan cuaca yang tampil di layar adalah kondisi cuaca yang 
 
 ---
 
-## 7. INTEGRASI AGROMETEOROLOGI BMKG & ALGORITMA JENDELA SEMPROT
+## 7. INTEGRASI AGROMETEOROLOGI BMKG & ALGORITMA WAKTU SEMPROT AMAN (SPRAYING WINDOW)
 
-### 7.1 Sumber Data BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)
+### 7.1 Terminologi: "Jendela Waktu Semprot" vs "Waktu Semprot Aman" vs Prinsip Kementan RI
+Dalam literatur agronomi dan agrometeorologi, terdapat 3 sudut pandang penggunaan istilah:
+1. **Ranah Smart Farming & Agrometeorologi Digital:** Dikenal secara teknis sebagai **"Jendela Waktu Semprot"** atau **"Jendela Semprot"** (*Spraying Window*). Istilah *window* (seperti pada *launch window* atau *opportunity window*) merujuk pada celah rentang waktu tertentu di mana seluruh variabel cuaca mikro saling mendukung sebelum jendela tersebut tertutup oleh cuaca ekstrem.
+2. **Ranah Regulasi Resmi Kementerian Pertanian RI:** Konsep ini merupakan perwujudan pilar ke-4 dari **"Prinsip 6 Tepat Aplikasi Pestisida"** Kementan RI, yaitu **"Tepat Waktu"** (Waktu Aplikasi yang Tepat berdasarkan kondisi agroklimat dan biologi patogen).
+3. **Ranah Petani & Penyuluh Pertanian Lapangan (PPL):** Di lapangan sehari-hari, konsep ini akrab disebut sebagai **"Waktu Semprot Aman"** atau **"Jam Semprot Ideal"**.
+
+AgriScan mengadopsi kedua istilah ini: menyajikan status **"Waktu Semprot Aman"** yang komunikatif bagi petani, didukung fondasi algoritma **"Jendela Waktu Semprot (Spraying Window Algorithm)"** berbasis parameter BMKG.
+
+### 7.2 Sumber Data BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)
 AgriScan terhubung secara resmi ke API Publik BMKG Republik Indonesia:
 - **Base URL:** `https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4={KODE_ADM4}`
 - **Format Data:** JSON terstruktur mencakup suhu udara ($^\circ\text{C}$), kelembapan relatif ($RH\%$), kecepatan angin ($\text{km/jam}$), dan kode cuaca (*weather description*).
 - **Strategi Caching:** Dilengkapi *in-memory cache* server dengan TTL 30 menit (`Cache-Control: public, max-age=1800, stale-while-revalidate=900`) guna menghemat *bandwidth* upstream BMKG dan mempercepat *response time* ke bawah $50\text{ ms}$.
 
-### 7.2 Logika Peringatan Dini Cuaca Ekstrem (Early Warning Rules)
+### 7.3 Logika Peringatan Dini Cuaca Ekstrem (Early Warning Rules)
 Berdasarkan kaidah ilmiah agroklimatologi Balitbangtan, sistem mengevaluasi 4 kondisi cuaca:
 
 | Variabel Agroklimat | Batas Kritis | Status Peringatan | Implikasi Agronomi Terhadap Tanaman |
@@ -331,7 +339,7 @@ Berdasarkan kaidah ilmiah agroklimatologi Balitbangtan, sistem mengevaluasi 4 ko
 | **Suhu Udara ($T$)** | $> 35^\circ\text{C}$ | **Perhatian** | Laju evapotranspirasi ekstrem; tanaman mengalami cekaman panas (*heat stress*), stomata menutup. |
 | **Kecepatan Angin ($V_{\text{wind}}$)** | $\ge 25\text{ km/jam}$ | **Perhatian** | Angin kencang memicu drift pestisida ke pemukiman dan merobohkan ajir/tanaman muda. |
 
-### 7.3 Algoritma Penentuan Status "Jendela Semprot" (Spray Window Safety)
+### 7.4 Algoritma Penentuan Status "Jendela Waktu Semprot" (Spray Window Safety)
 Aplikasi penyemprotan bahan kimia pertanian (fungisida, insektisida, pupuk daun) hanya efektif jika diaplikasikan pada jendela cuaca yang aman:
 
 ```
