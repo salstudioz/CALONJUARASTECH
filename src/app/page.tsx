@@ -9,7 +9,6 @@ import {
   ChevronRight,
   ShieldCheck,
   ArrowRight,
-  WifiOff,
 } from "lucide-react";
 import { AgronomyVisualizer } from "@/components/AgronomyVisualizer";
 
@@ -152,14 +151,6 @@ export default function HomePage() {
                   </div>
                 </div>
               </Link>
-
-              {/* Offline Banner */}
-              <div className="p-3.5 rounded-[18px] bg-[#E8F5E9]/60 border border-[#1B5E20]/20 flex items-center gap-3">
-                <WifiOff className="w-5 h-5 text-[#1B5E20] shrink-0" />
-                <div className="text-xs text-gray-700">
-                  <strong className="text-[#1B5E20]">PWA Offline Ready:</strong> Model AI dan kalkulator tetap berfungsi penuh tanpa koneksi internet.
-                </div>
-              </div>
             </div>
 
           </div>
