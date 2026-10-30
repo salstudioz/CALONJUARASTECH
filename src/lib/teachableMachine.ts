@@ -27,15 +27,15 @@ export interface TMPrediction {
   modelSource: string;
 }
 
-// Label to Disease mapping table
+// Label to Disease mapping table matching exact IDs in src/data/diseases.ts
 const LABEL_TO_DISEASE_MAP: Record<string, string> = {
   Padi_Sehat: "padi_healthy",
   Padi_Blas: "padi_blast",
-  Padi_Hawar_Kresek: "padi_hawar_daun_bakteri",
-  Padi_Bercak_Cokelat: "padi_bercak_cokelat",
+  Padi_Hawar_Kresek: "padi_bacterial_leaf_blight",
+  Padi_Bercak_Cokelat: "padi_brown_spot",
   Cabai_Sehat: "cabai_healthy",
-  Cabai_Keriting: "cabai_keriting",
-  Cabai_Bercak_Daun: "cabai_bercak_daun",
+  Cabai_Keriting: "cabai_leaf_curl",
+  Cabai_Bercak_Daun: "cabai_leaf_spot",
   Tomat_Sehat: "tomat_healthy",
   Tomat_Early_Blight: "tomat_early_blight",
   Tomat_Late_Blight: "tomat_late_blight",

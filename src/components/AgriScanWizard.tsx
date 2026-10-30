@@ -192,12 +192,15 @@ export function AgriScanWizard() {
 
   // Keep selectedDiseaseId aligned with plant when plant changes
   useEffect(() => {
-    const available = getDiseasesByPlant(selectedPlant);
-    if (available.length > 0) {
-      const target = available.find((d) => !d.isHealthy) || available[0];
-      setSelectedDiseaseId(target.id);
+    const current = getDiseaseById(selectedDiseaseId);
+    if (!current || current.plantType !== selectedPlant) {
+      const available = getDiseasesByPlant(selectedPlant);
+      if (available.length > 0) {
+        const target = available.find((d) => !d.isHealthy) || available[0];
+        setSelectedDiseaseId(target.id);
+      }
     }
-  }, [selectedPlant]);
+  }, [selectedPlant, selectedDiseaseId]);
 
   // Show Toast Helper
   const showToast = (msg: string) => {
@@ -286,8 +289,15 @@ export function AgriScanWizard() {
         return;
       }
 
-      // Map Teachable Machine prediction to agronomic disease profile
-      if (tmOutput?.mappedDisease && tmOutput.mappedDisease.plantType === selectedPlant) {
+      // Synchronize detection results with diagnosis results:
+      if (tmOutput?.mappedDisease) {
+        // Automatically sync commodity if user uploaded a different crop
+        if (tmOutput.mappedDisease.plantType !== selectedPlant) {
+          setSelectedPlant(tmOutput.mappedDisease.plantType);
+          showToast(
+            `Deteksi AI: Komoditas disinkronkan otomatis ke ${PLANTS[tmOutput.mappedDisease.plantType]?.name || tmOutput.mappedDisease.plantType}.`
+          );
+        }
         setSelectedDiseaseId(tmOutput.mappedDisease.id);
         result.disease = tmOutput.mappedDisease;
         result.confidence = tmOutput.percentage;
@@ -841,6 +851,12 @@ export function AgriScanWizard() {
                     <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#E8F5E9] text-[#1B5E20] border border-[#1B5E20]/30 font-extrabold text-sm sm:text-base shadow-sm">
                       <Sparkles className="w-4 h-4 text-[#1B5E20]" />
                       <span>{predictionResult ? `${predictionResult.confidence.toFixed(1)}% Keyakinan` : "87.4% Keyakinan"}</span>
+                    </div>
+
+                    {/* Commodity Tag */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#E8F5E9] text-[#1B5E20] border border-[#1B5E20]/30 shadow-sm">
+                      <Sprout className="w-3.5 h-3.5" />
+                      <span>{PLANTS[currentDiseaseInfo.plantType]?.name || selectedPlant}</span>
                     </div>
 
                     {/* Severity Tag */}
