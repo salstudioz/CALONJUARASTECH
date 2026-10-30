@@ -767,7 +767,7 @@ export function AgronomyVisualizer() {
               <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
                 <Sun className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <div className="text-xs text-amber-900">
-                  <strong>Jendela Waktu Semprot Aman:</strong> Pukul <strong>06.00 – 09.00 pagi</strong> atau <strong>15.30 – 17.30 sore</strong>. Jangan menyemprot saat terik siang matahari karena cairan menguap sebelum diserap daun!
+                  <strong>Waktu Semprot Aman:</strong> Pukul <strong>06.00 – 09.00 pagi</strong> atau <strong>15.30 – 17.30 sore</strong>. Jangan menyemprot saat terik siang matahari karena cairan menguap sebelum diserap daun!
                 </div>
               </div>
             </div>

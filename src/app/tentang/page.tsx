@@ -78,7 +78,7 @@ export default function PanduanPage() {
               Panduan Praktis Lapangan &amp; SOP Agronomi
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-2xl leading-relaxed">
-              Pedoman operasional lengkap bagi petani sawah, pekarangan urban farming, dan Penyuluh Pertanian Lapangan (PPL). Memuat tata cara pengambilan sampel daun terstandar, dosis pemupukan 5 Tepat Kementan RI, jendela aplikasi semprot berbasis cuaca BMKG, dan matriks pertolongan pertama patogen.
+              Pedoman operasional lengkap bagi petani sawah, pekarangan urban farming, dan Penyuluh Pertanian Lapangan (PPL). Memuat tata cara pengambilan sampel daun terstandar, dosis pemupukan 5 Tepat Kementan RI, jadwal waktu semprot aman berbasis cuaca BMKG, dan matriks pertolongan pertama patogen.
             </p>
           </div>
 
@@ -431,7 +431,7 @@ export default function PanduanPage() {
                 </div>
                 <div>
                   <h2 className="text-xl sm:text-2xl font-extrabold text-[#1A1C18]">
-                    Aturan Agrometeorologi &amp; Jendela Semprot BMKG
+                    Aturan Agrometeorologi &amp; Waktu Semprot Aman BMKG
                   </h2>
                   <p className="text-xs sm:text-sm text-gray-600">
                     Penyemprotan pestisida dan pupuk daun wajib memperhatikan parameter cuaca terbuka BMKG agar tidak luntur atau terbawa angin.

@@ -402,7 +402,7 @@ export function generateActionPlanPdf(options: PdfExportOptions): void {
       doc.setFontSize(8.5);
       doc.setTextColor(230, 81, 0); // Amber
       ensureSpace(8);
-      doc.text("Peringatan Risiko Cuaca & Jendela Semprot:", margin + 1, cursorY + 3);
+      doc.text("Peringatan Risiko Cuaca & Waktu Semprot Aman:", margin + 1, cursorY + 3);
       cursorY += 5;
 
       weatherData.warnings.forEach((w) => {

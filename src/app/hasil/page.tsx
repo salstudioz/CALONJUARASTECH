@@ -345,7 +345,7 @@ function HasilContent() {
               Rencana Aksi &amp; Agrometeorologi
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-2xl leading-relaxed">
-              Lembar rekomendasi terpadu pemupukan berimbang standar Kementan RI, tindakan perlindungan patogen, dan jendela semprot cuaca terbuka BMKG.
+              Lembar rekomendasi terpadu pemupukan berimbang standar Kementan RI, tindakan perlindungan patogen, dan panduan waktu semprot aman cuaca BMKG.
             </p>
           </div>
 

@@ -228,7 +228,7 @@ export default function HomePage() {
                   Cuaca &amp; Jadwal Semprot
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  Prakiraan 3 hari tingkat desa untuk menentukan jendela semprot aman dan mencegah pencucian pestisida oleh hujan.
+                  Prakiraan 3 hari tingkat desa untuk menentukan waktu semprot aman dan mencegah pencucian pestisida oleh hujan.
                 </p>
               </div>
 
