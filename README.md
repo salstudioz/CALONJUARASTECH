@@ -120,10 +120,13 @@ Tersedia modul edukasi visual untuk mempermudah petani dan warga awam memahami p
 │   └── lib/
 │       ├── calculator.ts   # Formula matematis populasi, pupuk HET, & media
 │       ├── calculator.test.ts # Unit test formula agronomi
-│       ├── inference.ts    # Engine klasifikasi citra MobileNetV2
+│       ├── inference.ts    # Engine ekstraksi visual & guard daun botani
+│       ├── teachableMachine.ts # Engine klasifikasi Google Teachable Machine (11 kelas)
+│       ├── teachableMachine.test.ts # Unit test model TM & deteksi salah jenis daun
 │       ├── pdfGenerator.ts # Generator PDF Rencana Aksi
 │       ├── storage.ts      # Abstraksi IndexedDB riwayat offline
-│       └── weather.test.ts # Unit test aturan agrometeorologi BMKG
+│       ├── weather.test.ts # Unit test aturan agrometeorologi BMKG
+│       └── fullVerification.test.ts # Unit test verifikasi terpadu AgriScan Pro
 ├── DEPLOYMENT.md           # Panduan lengkap instalasi cPanel Passenger
 ├── package.json            # Daftar dependensi & scripts
 ├── server.js               # Berkas startup Phusion Passenger cPanel
@@ -140,8 +143,8 @@ Tersedia modul edukasi visual untuk mempermudah petani dan warga awam memahami p
 
 ### Langkah 1: Kloning Repositori & Masuk ke Direktori
 ```bash
-git clone https://github.com/salstudioz/TimSEMPAKTELES.git
-cd TimSEMPAKTELES
+git clone https://github.com/salstudioz/CALONJUARASTECH.git
+cd CALONJUARASTECH
 ```
 
 ### Langkah 2: Instalasi Dependensi
@@ -156,11 +159,11 @@ npm run dev
 Buka browser pada: **[http://localhost:3000](http://localhost:3000)**
 
 ### Langkah 4: Menjalankan Pengujian Otomatis (QA Test)
-Memverifikasi formula agronomi (Tegel vs Legowo 2:1/4:1, formula media 1:1:1, ambang batas dolomit) dan evaluasi cuaca BMKG:
+Memverifikasi formula agronomi (Tegel vs Legowo 2:1/4:1, formula media 1:1:1, ambang batas dolomit), evaluasi cuaca BMKG, dan model deteksi salah jenis daun:
 ```bash
 npm test
 ```
-*Hasil pengujian mencakup 7 pengujian unit otomatis yang wajib berstatus passed (100% lulus).*
+*Hasil pengujian mencakup 22 pengujian unit otomatis pada 5 berkas pengujian yang wajib berstatus passed (100% lulus).*
 
 ### Langkah 5: Setup Basis Data MySQL (Opsional)
 Aplikasi telah dirancang dengan mekanisme *graceful fallback*. Jika Anda tidak menyiapkan basis data MySQL, aplikasi tetap berjalan 100% menggunakan data referensi lokal. Namun jika ingin menghubungkan MySQL:
@@ -196,4 +199,4 @@ Aplikasi siap dideploy ke berbagai platform hosting:
 ---
 
 *Dikembangkan dengan dedikasi untuk petani Indonesia dan pegiat ketahanan pangan mandiri.*  
-**Tim SEMPAKTELES — Universitas Jenderal Soedirman (2026)**
+**Tim ALHAMDULILLAH BOLEH GANTI NAMA TIM — Universitas Jenderal Soedirman (2026)**
