@@ -1,17 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { DevOverlayKiller } from "@/components/DevOverlayKiller";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-jakarta",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
 
 export const metadata: Metadata = {
   title: "AgriScan — Sistem Pendukung Keputusan Pertanian untuk Lahan Luas dan Pekarangan",
@@ -40,7 +32,7 @@ export default function RootLayout({
       lang="id"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${jakarta.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body
         suppressHydrationWarning

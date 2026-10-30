@@ -49,9 +49,9 @@ describe("Validasi Model Google Teachable Machine untuk Daun & Bukan Daun", () =
       expect(diseaseId, `Label ${label} harus memiliki pemetaan ID`).toBeDefined();
       const disease = getDiseaseById(diseaseId);
       expect(disease, `Penyakit dengan ID ${diseaseId} untuk label ${label} harus ditemukan di database`).toBeDefined();
-      expect(disease.name.length).toBeGreaterThan(0);
-      expect(disease.symptoms.length).toBeGreaterThan(0);
-      expect(disease.treatment.chemicalActive).toBeDefined();
+      expect(disease!.name.length).toBeGreaterThan(0);
+      expect(disease!.symptoms.length).toBeGreaterThan(0);
+      expect(disease!.treatment.chemicalActive).toBeDefined();
     });
   });
 
