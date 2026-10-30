@@ -10,6 +10,7 @@
 
 # Testing & Coverage
 /coverage
+test_output.pdf
 
 # Next.js Build Outputs
 /.next/

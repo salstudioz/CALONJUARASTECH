@@ -1,0 +1,23 @@
+{
+  "tfjsVersion": "4.22.0",
+  "tmVersion": "2.4.7",
+  "packageVersion": "1.0.0",
+  "packageName": "@teachablemachine/image",
+  "timeStamp": "2026-10-29T23:51:39.968Z",
+  "userMetadata": {},
+  "modelName": "AgriScan-Crop-Leaf-Teachable-Machine",
+  "labels": [
+    "Bukan_Daun",
+    "Padi_Sehat",
+    "Padi_Blas",
+    "Padi_Hawar_Kresek",
+    "Padi_Bercak_Cokelat",
+    "Cabai_Sehat",
+    "Cabai_Keriting",
+    "Cabai_Bercak_Daun",
+    "Tomat_Sehat",
+    "Tomat_Early_Blight",
+    "Tomat_Late_Blight"
+  ],
+  "imageSize": 48
+}

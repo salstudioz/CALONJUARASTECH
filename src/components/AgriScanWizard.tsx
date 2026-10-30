@@ -58,6 +58,7 @@ import {
   PekaranganResult,
 } from "@/lib/calculator";
 import { runInferenceOnImage, PredictionResult } from "@/lib/inference";
+import { predictWithTeachableMachine, TMPrediction } from "@/lib/teachableMachine";
 import { generateActionPlanPdf } from "@/lib/pdfGenerator";
 import { saveHistoryItem } from "@/lib/storage";
 import {
@@ -84,6 +85,7 @@ export function AgriScanWizard() {
 
   // ── STEP 3: DISEASE DETECTION RESULT ────────────────────────────
   const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null);
+  const [tmResult, setTmResult] = useState<TMPrediction | null>(null);
   const [selectedDiseaseId, setSelectedDiseaseId] = useState<string>("padi_blast");
 
   // ── STEP 4: CALCULATOR INPUTS ───────────────────────────────────
@@ -259,19 +261,40 @@ export function AgriScanWizard() {
         img.onerror = () => reject(new Error("Gagal memuat file gambar"));
       });
 
+      // 1. Run Google Teachable Machine Neural Network Inference
+      let tmOutput: TMPrediction | null = null;
+      try {
+        tmOutput = await predictWithTeachableMachine(img, selectedPlant);
+        setTmResult(tmOutput);
+      } catch (tmErr) {
+        console.warn("Teachable Machine client inference warning:", tmErr);
+      }
+
+      // 2. Run Botanical Pigmentation & Leaf Guard Verification
       const result = await runInferenceOnImage(img, selectedPlant);
 
-      // Non-leaf / Non-plant Rejection Check
-      if (!result.isLeafDetected) {
+      // Non-leaf / Non-plant Rejection Check: Triggered if Teachable Machine predicts Bukan_Daun OR leaf guard triggers
+      if ((tmOutput && !tmOutput.isLeaf) || !result.isLeafDetected) {
+        const reason = (tmOutput && !tmOutput.isLeaf)
+          ? tmOutput.rejectionReason
+          : result.rejectionReason;
         setScanError(
-          result.rejectionReason ||
+          reason ||
             "Objek pada foto tidak dikenali sebagai daun tanaman. Pastikan Anda mengarahkan kamera ke helai daun tanaman padi, cabai, atau tomat dari jarak 15–20 cm."
         );
         setPredictionResult(result);
         return;
       }
 
-      setSelectedDiseaseId(result.disease.id);
+      // Map Teachable Machine prediction to agronomic disease profile
+      if (tmOutput?.mappedDisease && tmOutput.mappedDisease.plantType === selectedPlant) {
+        setSelectedDiseaseId(tmOutput.mappedDisease.id);
+        result.disease = tmOutput.mappedDisease;
+        result.confidence = tmOutput.percentage;
+      } else {
+        setSelectedDiseaseId(result.disease.id);
+      }
+
       setPredictionResult(result);
       // Auto advance to Step 3 ONLY when leaf is valid
       setCurrentStep(3);
@@ -587,6 +610,17 @@ export function AgriScanWizard() {
               </p>
             </div>
 
+            {/* Google Teachable Machine Active Model Pill */}
+            <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-[16px] bg-[#E8F5E9] border border-[#1B5E20]/25 text-xs text-[#1B5E20] shadow-xs">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#1B5E20]" />
+                <span className="font-extrabold text-[#1B5E20]">Mesin AI: Google Teachable Machine (TensorFlow.js)</span>
+              </div>
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#1B5E20] text-white font-mono font-bold shrink-0">
+                Aktif &amp; Terlatih (11 Kelas)
+              </span>
+            </div>
+
             {/* Choice Selector Cards: [Padi], [Cabai], [Tomat] */}
             <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {[
@@ -855,6 +889,43 @@ export function AgriScanWizard() {
                       ))}
                     </ul>
                   </div>
+
+                  {/* Teachable Machine Neural Probability Distribution */}
+                  {tmResult && tmResult.probabilities && tmResult.probabilities.length > 0 && (
+                    <div className="bg-[#F9FBF8] rounded-[16px] p-4 border border-[#E0E6ED] space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#1B5E20]" />
+                          Probabilitas Teachable Machine:
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-mono bg-white px-2 py-0.5 rounded border border-gray-200">
+                          {tmResult.latencyMs} ms • 11 Kelas
+                        </span>
+                      </div>
+                      <div className="space-y-1.5 pt-1">
+                        {tmResult.probabilities.slice(0, 3).map((prob, idx) => (
+                          <div key={idx} className="space-y-0.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className={`font-semibold ${idx === 0 ? "text-[#1B5E20] font-bold" : "text-gray-600"}`}>
+                                {prob.className.replace(/_/g, " ")}
+                              </span>
+                              <span className="font-mono font-bold text-gray-900">
+                                {prob.percentage.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  idx === 0 ? "bg-[#1B5E20]" : "bg-gray-400"
+                                }`}
+                                style={{ width: `${Math.max(4, prob.percentage)}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
